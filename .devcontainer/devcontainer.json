@@ -34,7 +34,7 @@
   },
   "containerEnv": {
     "ZEPHYR_TOOLCHAIN_PATH": "/opt/toolchains/zephyr-sdk-0.16.8",
-    "ZEPHYR_BASE": "/workdir/deps"
+    "ZEPHYR_BASE": "/workdir/deps/zephyr"
   },
   "runArgs": [
     // Uncomment these to use on your local PC
