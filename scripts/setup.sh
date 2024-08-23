@@ -1,11 +1,13 @@
 # Take ownership of the following directories
 echo "[setup.sh] Taking ownership of the workdir/ directory"
 sudo chown -R user:user /workdir/
-sudo chown -R user:user /opt/toolchains/zephyr-sdk-0.16.5-1/sysroots/x86_64-pokysdk-linux/usr/bin
+sudo chown -R user:user $ZEPHYR_TOOLCHAIN_PATH/sysroots/x86_64-pokysdk-linux/usr/bin
 
 # Initialize the west repository in the 'app' subdirectory
-echo "[setup.sh] Initializing the west repository in the 'app' subdirectory"
-west init -l app
+if [ ! -d ".west" ]; then
+    echo "[setup.sh] Initializing the west repository in the 'app' subdirectory"
+    west init -l app
+fi
 
 # Make sure the workspace contains Git repositories matching the projects in the manifest file
 echo "[setup.sh] Updating west repository"

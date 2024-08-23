@@ -20,6 +20,7 @@ int main(void)
 {
   while (true)
   {
+    LOG_INF("Running...");
     k_msleep(1000);
   }
 

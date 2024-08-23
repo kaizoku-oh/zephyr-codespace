@@ -2,7 +2,7 @@
   "image": "ghcr.io/zephyrproject-rtos/zephyr-build:latest",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workdir/app,type=bind",
   "workspaceFolder": "/workdir",
-  "onCreateCommand": "app/.devcontainer/setup.sh",
+  "postCreateCommand": "app/scripts/setup.sh",
   "mounts": [
     "source=${localWorkspaceFolder}/.vscode/,target=/workdir/.vscode,type=bind,consistency=cached"
   ],
@@ -12,10 +12,10 @@
         // Hush CMake
         "cmake.configureOnOpen": false,
         // IntelliSense
-        "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-0.16.5-1/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
+        "C_Cpp.default.compilerPath": "${ZEPHYR_TOOLCHAIN_PATH}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
         "C_Cpp.default.compileCommands": "${workspaceFolder}/app/build/compile_commands.json",
         // cortex-debug extension config
-        "cortex-debug.openocdPath.linux": "/opt/toolchains/zephyr-sdk-0.16.5-1/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
+        "cortex-debug.openocdPath.linux": "${ZEPHYR_TOOLCHAIN_PATH}/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
         // File Associations
         "files.associations": {}
       },
@@ -28,14 +28,16 @@
         "PKief.material-icon-theme",
         "streetsidesoftware.code-spell-checker",
         "eamodio.gitlens",
-        "nick-rudenko.back-n-forth",
         "ms-vscode.hexeditor"
       ]
     }
   },
-  // Uncomment these to use on your local PC
-  // Access USB port from the docker container
-  // "runArgs": [
-  //   "--device=/dev/bus/usb/"
-  // ]
+  "containerEnv": {
+    "ZEPHYR_TOOLCHAIN_PATH": "/opt/toolchains/zephyr-sdk-0.16.8"
+  },
+  "runArgs": [
+    // Uncomment these to use on your local PC
+    // Access USB port from the docker container
+    "--device=/dev/bus/usb/"
+  ]
 }
