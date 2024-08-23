@@ -39,6 +39,6 @@
   "runArgs": [
     // Uncomment these to use on your local PC
     // Access USB port from the docker container
-    "--device=/dev/bus/usb/"
+    // "--device=/dev/bus/usb/"
   ]
 }
