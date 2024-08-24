@@ -9,6 +9,7 @@
 LOG_MODULE_REGISTER(main);
 
 #define PN532_I2C_ADDRESS (0x48 >> 1)
+#define PN532_CMD_GET_FIRMWARE_VERSION (0x02)
 
 static void temperature_thread_handler(void);
 static void nfc_thread_handler(void);
@@ -31,10 +32,10 @@ static void temperature_thread_handler(void)
 {
   int ret = 0;
   struct sensor_value value = {0};
-  const struct device *temperature_dev = DEVICE_DT_GET(DT_NODELABEL(die_temp));
+  const struct device *die_temp_dev = DEVICE_DT_GET(DT_NODELABEL(die_temp));
 
   /* Check if internal temperature sensor is ready to be used */
-  if (!device_is_ready(temperature_dev)) {
+  if (!device_is_ready(die_temp_dev)) {
     LOG_ERR("Temperature device is not ready");
     while (true);
   }
@@ -42,14 +43,14 @@ static void temperature_thread_handler(void)
   while (true)
   {
     /* Fetch a sample from the sensor */
-    ret = sensor_sample_fetch(temperature_dev);
+    ret = sensor_sample_fetch(die_temp_dev);
     if (ret) {
       LOG_ERR("Failed to fetch sample (%d)", ret);
       while (true);
     }
 
     /* Get a reading from a sensor device */
-    ret = sensor_channel_get(temperature_dev, SENSOR_CHAN_DIE_TEMP, &value);
+    ret = sensor_channel_get(die_temp_dev, SENSOR_CHAN_DIE_TEMP, &value);
     if (ret) {
       LOG_ERR("Failed to get data (%d)", ret);
       while (true);
@@ -65,8 +66,8 @@ static void temperature_thread_handler(void)
 static void nfc_thread_handler(void)
 {
   int ret = 0;
-  uint8_t version_cmd[] = {0x00, 0x00, 0xFF, 0x02, 0xFE, 0xD4, 0x02, 0x2A, 0x00};
-  uint8_t response[10] = {0};
+  uint8_t command = PN532_CMD_GET_FIRMWARE_VERSION;
+  uint8_t response[6] = {0};
   const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c1));
 
   /* Check if i2c device is ready to be used */
@@ -77,25 +78,13 @@ static void nfc_thread_handler(void)
 
   while (true)
   {
-    /* Send Get Firmware Version command */
-    ret = i2c_write(i2c_dev, version_cmd, sizeof(version_cmd), PN532_I2C_ADDRESS);
-    if (ret < 0) {
-      LOG_ERR("Failed to send command to PN532");
-      while (true);
-    }
-
-    /* Read the response from the PN532 */
-    ret = i2c_read(i2c_dev, response, sizeof(response), PN532_I2C_ADDRESS);
-    if (ret < 0) {
-      LOG_ERR("Failed to read response from PN532");
-      while (true);
-    }
-
-    /* Process the response (assuming success) */
-    if (response[6] == 0x32) {
-      LOG_INF("PN532 detected, Firmware Version: %02x.%02x", response[7], response[8]);
+    /* Write then read data from an I2C device */
+    ret = i2c_write_read(i2c_dev, PN532_I2C_ADDRESS, &command, 1, response, sizeof(response));
+    if (ret == 0) {
+      /* Process the response, which contains the firmware version */
+      LOG_INF("Firmware version: %x.%x\n", response[1], response[2]);
     } else {
-      LOG_WRN("No PN532 detected or wrong response");
+      LOG_ERR("Error reading firmware version: %d", ret);
     }
 
     k_msleep(1000);
