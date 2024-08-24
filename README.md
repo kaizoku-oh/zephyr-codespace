@@ -12,6 +12,12 @@ A Zephyr RTOS codespace based on devcontainer
   ]
 ```
 
+### If flashing doesn't work restart the docker service and try again
+
+```bash
+sudo systemctl restart docker
+```
+
 ```bash
 # Make sure the build is clean
 user@480c36b20b00:/workdir$ rm -rf /workdir/app/build
