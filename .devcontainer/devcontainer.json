@@ -36,9 +36,11 @@
     "ZEPHYR_TOOLCHAIN_PATH": "/opt/toolchains/zephyr-sdk-0.16.8",
     "ZEPHYR_BASE": "/workdir/deps/zephyr"
   },
+  // Uncomment these lines to access USB port from the docker container
   "runArgs": [
-    // Uncomment these to use on your local PC
-    // Access USB port from the docker container
-    // "--device=/dev/bus/usb/"
+    // Grants access to all devices
+    "--privileged",
+    // Maps USB devices into the container
+    "--device=/dev/bus/usb:/dev/bus/usb"
   ]
 }
