@@ -7,7 +7,7 @@
 LOG_MODULE_REGISTER(pn532);
 
 #define PN532_I2C_ADDR 0x24
-#define PN532_I2C_RDY_BYTE 0x01
+#define PN532_I2C_RDY_BYTE ((uint8_t)0x01)
 #define PN532_PREAMBLE 0x00
 #define PN532_STARTCODE1 0x00
 #define PN532_STARTCODE2 0xFF
@@ -15,9 +15,12 @@ LOG_MODULE_REGISTER(pn532);
 #define PN532_DIRECTION_HOST_TO_PN532 0xD4
 #define PN532_DIRECTION_PN532_TO_HOST 0xD5
 #define PN532_COMMAND_GET_FIRMWARE_VERSION 0x02
+#define PN532_COMMAND_INLISTPASSIVETARGET 0x4A
 #define PN532_COMMAND_MAX_SIZE (255U)
 #define PN532_PACKET_MAX_SIZE (PN532_COMMAND_MAX_SIZE) + (8U)
 #define PN532_ACK_PACKET_MAX_SIZE (6U)
+
+#define PN532_MIFARE_ISO14443A (0x00)
 
 #define TWOS_COMPLEMENT(val) (~(val) + (1U))
 
@@ -78,10 +81,10 @@ static int pn532_send_command(const struct device *i2c_dev, uint8_t *command, ui
   uint8_t direction_byte = PN532_DIRECTION_HOST_TO_PN532;
   uint8_t packet_length = 0;
   uint8_t packet[PN532_PACKET_MAX_SIZE] = {0};
-  uint8_t acknowledgement[7] = {0};
+  uint8_t acknowledgement[PN532_ACK_PACKET_MAX_SIZE + sizeof(PN532_I2C_RDY_BYTE)] = {0};
 
   /* 0. Check arguments validity */
-  if (command && command_length)
+  if (i2c_dev && command && command_length)
   {
     /* 1. Build the packet that encapsulate the command to send:
      *  ---------------------- ---------------------------------------------------- ------------------------------------------
@@ -103,10 +106,13 @@ static int pn532_send_command(const struct device *i2c_dev, uint8_t *command, ui
     packet[packet_length++] = command_length + sizeof(direction_byte);
     packet[packet_length++] = TWOS_COMPLEMENT(command_length + sizeof(direction_byte));
     packet[packet_length++] = direction_byte;
+
     memcpy(&packet[packet_length], command, command_length);
     packet_length += command_length;
+
     for (uint8_t i = 0; i < command_length; i++) {command_data_sum += command[i];}
     packet[packet_length++] = TWOS_COMPLEMENT(direction_byte + command_data_sum);
+
     packet[packet_length++] = PN532_POSTAMBLE;
 
     /* 2. Send the packet */
@@ -120,6 +126,7 @@ static int pn532_send_command(const struct device *i2c_dev, uint8_t *command, ui
         ret = i2c_read(i2c_dev, acknowledgement, PN532_ACK_PACKET_MAX_SIZE + 1, PN532_I2C_ADDR);
         if (ret == 0)
         {
+          /* When comparing ignore the first byte (RDY_BYTE) */
           ret = (memcmp(&acknowledgement[1], PN532_ACK_PACKET, PN532_ACK_PACKET_MAX_SIZE) == 0) ? 0 : -EIO;
         }
         else
@@ -161,7 +168,7 @@ static int pn532_read_response(const struct device *i2c_dev, uint8_t *response, 
   uint8_t temporary_buffer[PN532_PACKET_MAX_SIZE] = {0};
 
   /* 0. Check arguments */
-  if (response && length)
+  if ((i2c_dev != NULL) && (response != NULL) && (length > 0) && (length + 1 < PN532_PACKET_MAX_SIZE))
   {
     /* 1. Wait for device to be ready */
     if (pn532_is_ready(i2c_dev, timeout))
@@ -170,7 +177,7 @@ static int pn532_read_response(const struct device *i2c_dev, uint8_t *response, 
       ret = i2c_read(i2c_dev, temporary_buffer, length + 1, PN532_I2C_ADDR);
       if (ret == 0)
       {
-        /* 3. Copy the actual response data to the provided buffer */
+        /* 3. Copy the actual response data to the provided buffer and ignore the first byte (RDY_BYTE) */
         memcpy(response, &temporary_buffer[1], length);
         ret = 0;
       }
@@ -208,7 +215,7 @@ int pn532_get_firmware_version(const struct device *i2c_dev, uint32_t *version)
   uint8_t buffer[13] = {0};
   uint8_t version_offset = 7;
 
-  if (version)
+  if (i2c_dev && version)
   {
     buffer[0] = PN532_COMMAND_GET_FIRMWARE_VERSION;
     ret = pn532_send_command(i2c_dev, buffer, 1, 1000);
@@ -217,7 +224,7 @@ int pn532_get_firmware_version(const struct device *i2c_dev, uint32_t *version)
       ret = pn532_read_response(i2c_dev, buffer, 13, 1000);
       if (ret == 0)
       {
-        if (memcmp(buffer, expected_version, 6) == 0)
+        if (memcmp(buffer, expected_version, sizeof(expected_version)) == 0)
         {
           *version = buffer[version_offset++];
           *version <<= 8;
@@ -241,6 +248,60 @@ int pn532_get_firmware_version(const struct device *i2c_dev, uint32_t *version)
     else
     {
       ret = -EIO;
+    }
+  }
+  else
+  {
+    ret = -EINVAL;
+  }
+
+  return ret;
+}
+
+/**
+ * @brief Reads the UID of a passive target (card/tag) in the field.
+ *
+ * This function sends a command to detect a passive target and reads its UID.
+ *
+ * @param i2c_dev Initialized I2C device
+ * @param uid Pointer to the buffer where the UID will be stored (up to 7 bytes)
+ * @param uid_length Pointer to the variable where the length of the UID will be stored
+ * @param timeout Maximum time to wait for the device to be ready, in milliseconds.
+ *
+ * @return 0 on success, or a negative error code on failure.
+ */
+int pn532_read_passive_target_uid(const struct device *i2c_dev, uint8_t *uid, uint8_t *uid_length, uint16_t timeout)
+{
+  int ret;
+  uint8_t buffer[20] = {0};
+
+  if (i2c_dev && uid && uid_length)
+  {
+    /* Prepare command buffer */
+    buffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
+    buffer[1] = 1;
+    buffer[2] = PN532_MIFARE_ISO14443A;
+    /* Send command */
+    ret = pn532_send_command(i2c_dev, buffer, 3, timeout);
+    if (ret == 0)
+    {
+      /* Reuse the same buffer for reading the response */
+      ret = pn532_read_response(i2c_dev, buffer, 20, timeout);
+      if (ret == 0)
+      {
+        /* Make sure we've detected only one card */
+        if (buffer[7] == 1)
+        {
+          /* Extract UID length and UID */
+          *uid_length = buffer[12];
+          memcpy(uid, &buffer[13], *uid_length);
+          ret = 0;
+        }
+        else
+        {
+          ret = -EIO;
+        }
+      }
     }
   }
   else

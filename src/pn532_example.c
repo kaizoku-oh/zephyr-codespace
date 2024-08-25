@@ -16,6 +16,8 @@ static void nfc_thread_handler(void)
 {
   int ret = 0;
   uint32_t version = 0;
+  uint8_t uid[7] = {0};
+  uint8_t uid_length = 0;
   const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c1));
 
   if (!device_is_ready(i2c_dev)) {
@@ -23,17 +25,24 @@ static void nfc_thread_handler(void)
     while (true);
   }
 
+  ret = pn532_get_firmware_version(i2c_dev, &version);
+  if (ret == 0)
+  {
+    LOG_INF("Found chip PN5%x", (version >> 24) & 0xFF);
+    LOG_INF("Firmware version %d.%d", (version >> 16) & 0xFF, (version >> 8) & 0xFF);
+  }
+  else
+  {
+    LOG_ERR("Error reading firmware version: %d", ret);
+    while (true);
+  }
+
   while (true)
   {
-    ret = pn532_get_firmware_version(i2c_dev, &version);
+    ret = pn532_read_passive_target_uid(i2c_dev, uid, &uid_length, 1000);
     if (ret == 0)
     {
-      LOG_INF("Found chip PN5%x", (version >> 24) & 0xFF);
-      LOG_INF("Firmware version %d.%d", (version >> 16) & 0xFF, (version >> 8) & 0xFF);
-    }
-    else
-    {
-      LOG_ERR("Error reading firmware version: %d", ret);
+      LOG_HEXDUMP_INF(uid, uid_length, "UID:");
     }
     k_msleep(1000);
   }
