@@ -10,7 +10,7 @@ LOG_MODULE_REGISTER(pn532_example);
 
 static void nfc_thread_handler(void);
 
-K_THREAD_DEFINE(nfc_thread, 1024, nfc_thread_handler, NULL, NULL, NULL, 7, 0, 0);
+K_THREAD_DEFINE(nfc_thread, 1536, nfc_thread_handler, NULL, NULL, NULL, 7, 0, 0);
 
 static void nfc_thread_handler(void)
 {

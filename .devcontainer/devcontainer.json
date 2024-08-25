@@ -39,8 +39,8 @@
   // Uncomment these lines to access USB port from the docker container
   "runArgs": [
     // Grants access to all devices
-    "--privileged",
+    // "--privileged",
     // Maps USB devices into the container
-    "--device=/dev/bus/usb:/dev/bus/usb"
+    // "--device=/dev/bus/usb:/dev/bus/usb"
   ]
 }
