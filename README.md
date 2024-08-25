@@ -71,3 +71,9 @@ Install docker on WSL2 following this link https://learn.microsoft.com/en-us/win
 - [x] Debug app using vscode cortex-debug
 
 - [x] Restructure workspace to be compatible with the hard coded `ZEPHYR_BASE` path
+
+- [x] Get firmware version from PN532 module
+
+- [x] Get UID from PN532 module
+
+- [ ] Use interrupt to detect card

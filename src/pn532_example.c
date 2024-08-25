@@ -37,12 +37,18 @@ static void nfc_thread_handler(void)
     while (true);
   }
 
+  pn532_start_passive_target_id_detection(i2c_dev, PN532_MIFARE_ISO14443A);
+
   while (true)
   {
-    ret = pn532_read_passive_target_uid(i2c_dev, uid, &uid_length, 1000);
+    ret = pn532_read_passive_target_id(i2c_dev, uid, &uid_length, 1000);
     if (ret == 0)
     {
       LOG_HEXDUMP_INF(uid, uid_length, "UID:");
+    }
+    else
+    {
+      LOG_WRN("Looking for a card...");
     }
     k_msleep(1000);
   }

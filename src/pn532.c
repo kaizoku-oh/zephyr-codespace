@@ -15,12 +15,11 @@ LOG_MODULE_REGISTER(pn532);
 #define PN532_DIRECTION_HOST_TO_PN532 0xD4
 #define PN532_DIRECTION_PN532_TO_HOST 0xD5
 #define PN532_COMMAND_GET_FIRMWARE_VERSION 0x02
-#define PN532_COMMAND_INLISTPASSIVETARGET 0x4A
+#define PN532_COMMAND_ENLIST_PASSIVE_TARGET 0x4A
 #define PN532_COMMAND_MAX_SIZE (255U)
 #define PN532_PACKET_MAX_SIZE (PN532_COMMAND_MAX_SIZE) + (8U)
 #define PN532_ACK_PACKET_MAX_SIZE (6U)
-
-#define PN532_MIFARE_ISO14443A (0x00)
+#define DETECT_ONE_CARD_AT_A_TIME (1U)
 
 #define TWOS_COMPLEMENT(val) (~(val) + (1U))
 
@@ -39,7 +38,7 @@ static const uint8_t PN532_ACK_PACKET[PN532_ACK_PACKET_MAX_SIZE] = {0x00, 0x00, 
  *
  * @return `true` if the device is ready, `false` otherwise.
  */
-static bool pn532_is_ready(const struct device *i2c_dev, uint16_t timeout)
+static bool _pn532_is_ready(const struct device *i2c_dev, uint16_t timeout)
 {
   int ret;
   uint8_t rdy_byte = 0;
@@ -74,7 +73,7 @@ static bool pn532_is_ready(const struct device *i2c_dev, uint16_t timeout)
  *
  * @return 0 on success, negative error code on failure.
  */
-static int pn532_send_command(const struct device *i2c_dev, uint8_t *command, uint8_t command_length, uint16_t timeout)
+static int _pn532_send_command(const struct device *i2c_dev, uint8_t *command, uint8_t command_length, uint16_t timeout)
 {
   int ret;
   uint8_t command_data_sum = 0;
@@ -120,7 +119,7 @@ static int pn532_send_command(const struct device *i2c_dev, uint8_t *command, ui
     if (ret == 0)
     {
       /* 3. Wait for device to be ready */
-      if (pn532_is_ready(i2c_dev, timeout))
+      if (_pn532_is_ready(i2c_dev, timeout))
       {
         /* 4. Read and verify the received acknowledgment for the sent command */
         ret = i2c_read(i2c_dev, acknowledgement, PN532_ACK_PACKET_MAX_SIZE + 1, PN532_I2C_ADDR);
@@ -162,7 +161,7 @@ static int pn532_send_command(const struct device *i2c_dev, uint8_t *command, ui
  *
  * @return 0 on success, negative error code on failure.
  */
-static int pn532_read_response(const struct device *i2c_dev, uint8_t *response, uint8_t length, uint16_t timeout)
+static int _pn532_read_response(const struct device *i2c_dev, uint8_t *response, uint8_t length, uint16_t timeout)
 {
   int ret;
   uint8_t temporary_buffer[PN532_PACKET_MAX_SIZE] = {0};
@@ -171,7 +170,7 @@ static int pn532_read_response(const struct device *i2c_dev, uint8_t *response, 
   if ((i2c_dev != NULL) && (response != NULL) && (length > 0) && (length + 1 < PN532_PACKET_MAX_SIZE))
   {
     /* 1. Wait for device to be ready */
-    if (pn532_is_ready(i2c_dev, timeout))
+    if (_pn532_is_ready(i2c_dev, timeout))
     {
       /* 2. Read packet from the device */
       ret = i2c_read(i2c_dev, temporary_buffer, length + 1, PN532_I2C_ADDR);
@@ -218,10 +217,10 @@ int pn532_get_firmware_version(const struct device *i2c_dev, uint32_t *version)
   if (i2c_dev && version)
   {
     buffer[0] = PN532_COMMAND_GET_FIRMWARE_VERSION;
-    ret = pn532_send_command(i2c_dev, buffer, 1, 1000);
+    ret = _pn532_send_command(i2c_dev, buffer, 1, 1000);
     if (ret == 0)
     {
-      ret = pn532_read_response(i2c_dev, buffer, 13, 1000);
+      ret = _pn532_read_response(i2c_dev, buffer, 13, 1000);
       if (ret == 0)
       {
         if (memcmp(buffer, expected_version, sizeof(expected_version)) == 0)
@@ -259,6 +258,46 @@ int pn532_get_firmware_version(const struct device *i2c_dev, uint32_t *version)
 }
 
 /**
+ * @brief Starts the detection of a passive target (e.g., an NFC card or tag).
+ *
+ * This function initiates the detection of a passive target by sending the 
+ * `ENLIST_PASSIVE_TARGET` command to the PN532 device. It operates in non-blocking 
+ * mode, so interrupts must be enabled to handle the detection results. The function 
+ * can be used to detect a single passive target at a specified baud rate.
+ *
+ * @param i2c_dev Initialized I2C device.
+ * @param card_baudrate The baud rate to use for detecting the card. Typical values are:
+ *        - 0x00 for 106 kbps (ISO14443A/MiFare)
+ *        - 0x01 for 212 kbps (FeliCa)
+ *        - 0x02 for 424 kbps (FeliCa)
+ *
+ * @return 0 on success, or a negative error code on failure.
+ *         - -EINVAL if the i2c_dev parameter is invalid.
+ *         - Negative error codes from `_pn532_send_command()` if sending the command fails.
+ */
+int pn532_start_passive_target_id_detection(const struct device *i2c_dev, uint8_t card_baudrate)
+{
+  int ret;
+  uint8_t buffer[8] = {0};
+
+  if (i2c_dev)
+  {
+    /* Prepare command buffer */
+    buffer[0] = PN532_COMMAND_ENLIST_PASSIVE_TARGET;
+    buffer[1] = DETECT_ONE_CARD_AT_A_TIME;
+    buffer[2] = card_baudrate;
+    /* Send command */
+    ret = _pn532_send_command(i2c_dev, buffer, 3, 1000);
+  }
+  else
+  {
+    ret = -EINVAL;
+  }
+
+  return ret;
+}
+
+/**
  * @brief Reads the UID of a passive target (card/tag) in the field.
  *
  * This function sends a command to detect a passive target and reads its UID.
@@ -270,37 +309,28 @@ int pn532_get_firmware_version(const struct device *i2c_dev, uint32_t *version)
  *
  * @return 0 on success, or a negative error code on failure.
  */
-int pn532_read_passive_target_uid(const struct device *i2c_dev, uint8_t *uid, uint8_t *uid_length, uint16_t timeout)
+int pn532_read_passive_target_id(const struct device *i2c_dev, uint8_t *uid, uint8_t *uid_length, uint16_t timeout)
 {
   int ret;
   uint8_t buffer[20] = {0};
 
   if (i2c_dev && uid && uid_length)
   {
-    /* Prepare command buffer */
-    buffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
-    buffer[1] = 1;
-    buffer[2] = PN532_MIFARE_ISO14443A;
-    /* Send command */
-    ret = pn532_send_command(i2c_dev, buffer, 3, timeout);
+    /* Reuse the same buffer for reading the response */
+    ret = _pn532_read_response(i2c_dev, buffer, 20, timeout);
     if (ret == 0)
     {
-      /* Reuse the same buffer for reading the response */
-      ret = pn532_read_response(i2c_dev, buffer, 20, timeout);
-      if (ret == 0)
+      /* Make sure we've detected only one card */
+      if (buffer[7] == 1)
       {
-        /* Make sure we've detected only one card */
-        if (buffer[7] == 1)
-        {
-          /* Extract UID length and UID */
-          *uid_length = buffer[12];
-          memcpy(uid, &buffer[13], *uid_length);
-          ret = 0;
-        }
-        else
-        {
-          ret = -EIO;
-        }
+        /* Extract UID length and UID */
+        *uid_length = buffer[12];
+        memcpy(uid, &buffer[13], *uid_length);
+        ret = 0;
+      }
+      else
+      {
+        ret = -EIO;
       }
     }
   }
