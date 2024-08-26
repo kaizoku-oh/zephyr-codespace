@@ -20,6 +20,7 @@ LOG_MODULE_REGISTER(pn532);
 #define PN532_PACKET_MAX_SIZE (PN532_COMMAND_MAX_SIZE) + (8U)
 #define PN532_ACK_PACKET_MAX_SIZE (6U)
 #define DETECT_ONE_CARD_AT_A_TIME (1U)
+#define PN532_COMMAND_SAMCONFIGURATION (0x14)      ///< SAM configuration
 
 #define TWOS_COMPLEMENT(val) (~(val) + (1U))
 
@@ -278,10 +279,28 @@ int pn532_get_firmware_version(const struct device *i2c_dev, uint32_t *version)
 int pn532_start_passive_target_id_detection(const struct device *i2c_dev, uint8_t card_baudrate)
 {
   int ret;
-  uint8_t buffer[8] = {0};
+  uint8_t buffer[16] = {0};
 
   if (i2c_dev)
   {
+    /* Prepare command buffer */
+    buffer[0] = PN532_COMMAND_SAMCONFIGURATION;
+    buffer[1] = 0x01; // normal mode;
+    buffer[2] = 0x14; // timeout 50ms * 20 = 1 second
+    buffer[3] = 0x01; // use IRQ pin!
+    /* Send command */
+    ret = _pn532_send_command(i2c_dev, buffer, 3, 1000);
+    /* Reuse the same buffer for reading the response */
+    ret = _pn532_read_response(i2c_dev, buffer, 9, 1000);
+    if (buffer[6] == 0x15)
+    {
+      ret = 0;
+    }
+    else
+    {
+      ret = -EIO;
+    }
+
     /* Prepare command buffer */
     buffer[0] = PN532_COMMAND_ENLIST_PASSIVE_TARGET;
     buffer[1] = DETECT_ONE_CARD_AT_A_TIME;
