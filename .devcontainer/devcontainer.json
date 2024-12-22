@@ -51,7 +51,6 @@
         "PKief.material-icon-theme",
         "streetsidesoftware.code-spell-checker",
         "eamodio.gitlens",
-        "nick-rudenko.back-n-forth",
         "ms-vscode.hexeditor",
         "dan-c-underwood.arm",
         "ZixuanWang.linkerscript",
@@ -65,5 +64,5 @@
     // Grants access to USB devices
     "--device=/dev/bus/usb:/dev/bus/usb"
   ],
-  "remoteUser": "zephyr"
+  "remoteUser": "user"
 }

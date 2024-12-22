@@ -31,7 +31,6 @@ ZBUS_CHAN_ADD_OBS(eventsChannel, serviceUpdaterSubscriber, 4);
 // Thread definition
 K_THREAD_DEFINE(serviceUpdaterThread, 4096, serviceUpdaterThreadHandler, NULL, NULL, NULL, 7, 0, 0);
 
-static volatile bool networkIsAvailable = false;
 static size_t totalDownloadSize = 0;
 static size_t currentDownloadedSize = 0;
 static struct flash_img_context flashContext = {0};
@@ -49,7 +48,7 @@ static void serviceUpdaterThreadHandler() {
   const struct zbus_channel *channel = NULL;
 
   // Create an HTTP client as a local object
-  HttpClient client((char *)"192.168.1.22");
+  HttpClient client((char *)"192.168.1.25");
 
   // Read the bootloader major version and the application version
   struct mcuboot_img_header header = {0};
@@ -59,10 +58,11 @@ static void serviceUpdaterThreadHandler() {
     while (true);
   }
   LOG_INF("Bootloader version: %d.x.y", header.mcuboot_version);
-  LOG_INF("Application version: %d.%d.%d",
+  LOG_INF("Application version: %d.%d.%d-%d",
           header.h.v1.sem_ver.major,
           header.h.v1.sem_ver.minor,
-          header.h.v1.sem_ver.revision);
+          header.h.v1.sem_ver.revision,
+          header.h.v1.sem_ver.build_num);
 
   // On boot verify if current image is confirmed, if not confirm it
   imageOk = boot_is_img_confirmed();
@@ -107,72 +107,71 @@ static void serviceUpdaterThreadHandler() {
           switch (event.id) {
 
             case EVENT_NETWORK_AVAILABLE: {
-              networkIsAvailable = true;
-              break;
-            }
+              LOG_INF("Started checking for updates...");
 
-            case EVENT_BUTTON_PRESSED: {
-              if (networkIsAvailable) {
-                LOG_INF("Started checking for updates...");
+              // Initialize context needed for writing the image to the flash
+              flash_img_init(&flashContext);
 
-                // Initialize context needed for writing the image to the flash
-                flash_img_init(&flashContext);
+              // Download image
+              client.get("/zephyr.signed.bin", [](HttpResponse *response) {
+                int ret = 0;
+                size_t totalSizeWrittenToFlash = 0;
 
-                // Download image
-                client.get("/zephyr.signed.bin", [](HttpResponse *response) {
-                  int ret = 0;
-                  size_t totalSizeWrittenToFlash = 0;
-
-                  if (totalDownloadSize == 0) {
-                    totalDownloadSize = response->totalSize;
-                    LOG_INF("File size to download: %d bytes", totalDownloadSize);
-                  }
-
-                  ret = flash_img_buffered_write(&flashContext,
-                                                 response->body,
-                                                 response->bodyLength,
-                                                 (response->isComplete));
-                  if (ret < 0) {
-                    LOG_ERR("Flash write error: %d", ret);
-                    return;
-                  }
-                  k_msleep(10);
-
-                  currentDownloadedSize += response->bodyLength;
-                  printk("\rDownloading: %d/%d bytes", currentDownloadedSize, totalDownloadSize);
-
-                  if (response->isComplete) {
-                    printk("\r\n");
-                    totalSizeWrittenToFlash = flash_img_bytes_written(&flashContext);
-                    LOG_INF("File size downloaded: %d bytes", currentDownloadedSize);
-                    LOG_INF("File size written to flash: %d bytes", currentDownloadedSize);
-                    LOG_INF("Image size: %d kb", totalDownloadSize / 1024);
-                    if ((currentDownloadedSize == totalDownloadSize) &&
-                        (totalDownloadSize == totalSizeWrittenToFlash)) {
-                      LOG_INF("Download completed successfully");
-                    } else {
-                      LOG_ERR("The size written to flash is different than the one downloaded");
-                    }
-                  }
-                });
-
-                // // Verify the hash of the stored firmware
-                // flashImageCheck.match = fileHash;
-                // flashImageCheck.clen = totalDownloadSize;
-                // if (flash_img_check(&flashContext, &flashImageCheck, FIXED_PARTITION_ID(slot1_partition))) {
-                //   LOG_ERR("Firmware - flash validation has failed");
-                //   return;
-                // }
-
-                // Request mcuboot to upgrade
-                if (boot_request_upgrade(BOOT_UPGRADE_TEST)) {
-                  LOG_ERR("Failed to mark the image in slot 1 as pending");
+                if (response->statusCode == 404) {
+                  LOG_ERR("Failed to download the firmware: %d", response->statusCode);
                   return;
                 }
 
-              } else {
-                LOG_WRN("Cannot update because network is not available");
-              }
+                if (totalDownloadSize == 0) {
+                  totalDownloadSize = response->totalSize;
+                  LOG_INF("File size to download: %d bytes", totalDownloadSize);
+                }
+
+                ret = flash_img_buffered_write(&flashContext,
+                                                response->body,
+                                                response->bodyLength,
+                                                (response->isComplete));
+                if (ret < 0) {
+                  LOG_ERR("Flash write error: %d", ret);
+                  return;
+                }
+                k_msleep(10);
+
+                currentDownloadedSize += response->bodyLength;
+                printk("\rDownloading: %d/%d bytes", currentDownloadedSize, totalDownloadSize);
+
+                if (response->isComplete) {
+                  printk("\r\n");
+                  totalSizeWrittenToFlash = flash_img_bytes_written(&flashContext);
+                  LOG_INF("File size downloaded: %d bytes", currentDownloadedSize);
+                  LOG_INF("File size written to flash: %d bytes", currentDownloadedSize);
+                  LOG_INF("Image size: %d kb", totalDownloadSize / 1024);
+                  if ((currentDownloadedSize == totalDownloadSize) &&
+                      (totalDownloadSize == totalSizeWrittenToFlash)) {
+                    LOG_INF("Download completed successfully");
+#ifdef VERIFY_DOWNLOADED_IMAGE_HASH
+                    // Verify the hash of the stored firmware
+                    flashImageCheck.match = fileHash;
+                    flashImageCheck.clen = totalDownloadSize;
+                    if (flash_img_check(&flashContext, &flashImageCheck, FIXED_PARTITION_ID(slot1_partition))) {
+                      LOG_ERR("Firmware - flash validation has failed");
+                      return;
+                    }
+#endif
+                    // Request mcuboot to upgrade
+                    if (boot_request_upgrade(BOOT_UPGRADE_TEST)) {
+                      LOG_ERR("Failed to mark the image in slot 1 as pending");
+                      return;
+                    }
+                  } else {
+                    LOG_ERR("The size written to flash is different than the one downloaded");
+                    LOG_ERR("totalDownloadSize=%d", totalDownloadSize);
+                    LOG_ERR("currentDownloadedSize=%d", currentDownloadedSize);
+                    LOG_ERR("totalSizeWrittenToFlash=%d", totalSizeWrittenToFlash);
+                  }
+                }
+              });
+
               break;
             }
 

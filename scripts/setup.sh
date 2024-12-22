@@ -1,8 +1,3 @@
-# Take ownership of the following directories
-# echo "[setup.sh] Taking ownership of the workdir/ directory"
-# sudo chown -R user:user /workdir/
-# sudo chown -R user:user $ZEPHYR_TOOLCHAIN_PATH/sysroots/x86_64-pokysdk-linux/usr/bin
-
 # Initialize the west repository in the 'app' subdirectory
 if [ ! -d ".west" ]; then
     echo "[setup.sh] Initializing the west repository in the 'app' subdirectory"

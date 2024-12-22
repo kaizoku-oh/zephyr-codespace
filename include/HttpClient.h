@@ -63,6 +63,7 @@ typedef struct {
   uint32_t bodyLength;
   uint32_t totalSize;
   bool isComplete;
+  uint16_t statusCode;
 } HttpResponse;
 
 class HttpClient {

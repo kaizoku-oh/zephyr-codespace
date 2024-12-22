@@ -156,6 +156,7 @@ static void responseCallback(http_response *response, enum http_final_call final
     httpResponse.header = response->recv_buf;
     httpResponse.headerLength = response->data_len;
   }
+  httpResponse.statusCode = response->http_status_code;
 
   if (clientInstance->callback) {
     clientInstance->callback(&httpResponse);

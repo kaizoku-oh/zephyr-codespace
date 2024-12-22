@@ -1,0 +1,17 @@
+[
+    {
+        "key": "ctrl+j",
+        "command": "editor.action.joinLines",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+k",
+        "command": "editor.action.commentLine",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+alt+k",
+        "command": "editor.action.blockComment",
+        "when": "editorTextFocus"
+    }
+]
