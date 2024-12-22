@@ -10,7 +10,7 @@ manifest:
 
   projects:
     - name: golioth
-      path: deps/modules/lib/golioth-firmware-sdk
+      path: modules/lib/golioth-firmware-sdk
       revision: main
       url: https://github.com/kaizoku-oh/golioth-firmware-sdk.git
       submodules: true
@@ -20,7 +20,6 @@ manifest:
       revision: a6eef0ba3755f2530c5ce93524e5ac4f5be30194 # v3.5.0
       path: zephyr
       import:
-        path-prefix: deps
         name-allowlist:
           - cmsis
           - hal_stm32
