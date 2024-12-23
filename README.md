@@ -3,21 +3,6 @@ A Zephyr RTOS codespace based on devcontainer
 
 ## Usage
 
-### Uncomment these lines to flash your device
-
-```jsonc
-"runArgs": [
-    // Access USB port from the docker container
-    "--device=/dev/bus/usb/"
-  ]
-```
-
-### If flashing doesn't work restart the docker service and try again
-
-```bash
-sudo systemctl restart docker
-```
-
 ```bash
 # Make sure the build is clean
 user@480c36b20b00:/workdir$ rm -rf /workdir/app/build
@@ -55,12 +40,18 @@ user@480c36b20b00:/workdir$ west debug --build-dir app/build/
     -f /workdir/zephyr/boards/arm/nucleo_f767zi/support/openocd.cfg
 ```
 
+### If flashing doesn't work restart the docker service and try again
+
+```bash
+sudo systemctl restart docker
+```
+
 ## Windows 11
 
 Install docker on WSL2 following this link https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers
 
 ## Limitation
-`ZEPHYR_BASE` environment variable is hard coded in the docker image
+`ZEPHYR_BASE` environment variable is hardcoded in the docker image to `/workdir/zephyr`
 
 ## ✅ ToDo
 
@@ -77,3 +68,13 @@ Install docker on WSL2 following this link https://learn.microsoft.com/en-us/win
 - [x] Get UID from PN532 module
 
 - [ ] Use interrupt to detect card
+
+- [ ] Simplify Updater code
+
+- [ ] Add green progress bar animation when downloading image (plus a green check mark at the end)
+
+- [ ] Add hash verification to Updater
+
+- [ ] Instead of directly downloading any image, the Updater will send a request to an HTTP API that will respond with the latest version, hash and download URL
+
+- [ ] Check the possibility of communicating directly with the GitHub REST API to download release assets
