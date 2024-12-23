@@ -32,21 +32,21 @@ user@480c36b20b00:/workdir$ west flash -d /workdir/app/build
 user@480c36b20b00:/workdir$ west debug --build-dir app/build/
 
 # west debug openocd commands
-/opt/toolchains/zephyr-sdk-0.16.8/sysroots/x86_64-pokysdk-linux/usr/bin/openocd
+/opt/toolchains/zephyr-sdk-0.17.0/sysroots/x86_64-pokysdk-linux/usr/bin/openocd
     -s /workdir/zephyr/boards/arm/nucleo_f767zi/support
-    -s /opt/toolchains/zephyr-sdk-0.16.8/sysroots/x86_64-pokysdk-linux/usr/share/openocd/scripts
+    -s /opt/toolchains/zephyr-sdk-0.17.0/sysroots/x86_64-pokysdk-linux/usr/share/openocd/scripts
     -f /workdir/zephyr/boards/arm/nucleo_f767zi/support/openocd.cfg
     -c 'tcl_port 6333'
     -c 'telnet_port 4444'
     -c 'gdb_port 3333'
     -c '$_TARGETNAME configure -rtos Zephyr' '-c init' '-c targets' '-c halt'
 
-/opt/toolchains/zephyr-sdk-0.16.8/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb
+/opt/toolchains/zephyr-sdk-0.17.0/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb
     -ex 'target extended-remote :3333' app/build/zephyr/zephyr.elf
     -ex load
 
 # cortex-debug openocd command
-/opt/toolchains/zephyr-sdk-0.16.8/sysroots/x86_64-pokysdk-linux/usr/bin/openocd
+/opt/toolchains/zephyr-sdk-0.17.0/sysroots/x86_64-pokysdk-linux/usr/bin/openocd
     -c "gdb_port 50000"
     -c "tcl_port 50001"
     -c "telnet_port 50002"
