@@ -9,7 +9,7 @@
             "command": "rm",
             "args": [
                 "-rf",
-                "${workspaceFolder}/bootloader/mcuboot/boot/zephyr/build",
+                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr/build",
             ],
             "problemMatcher": [
                 "$gcc"
@@ -25,9 +25,9 @@
             "command": "west",
             "args": [
                 "build",
-                "${workspaceFolder}/bootloader/mcuboot/boot/zephyr",
+                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr",
                 "-d",
-                "${workspaceFolder}/bootloader/mcuboot/boot/zephyr/build",
+                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr/build",
                 "-p",
                 "auto",
                 "-b",
@@ -44,7 +44,7 @@
             "args": [
                 "flash",
                 "-d",
-                "${workspaceFolder}/bootloader/mcuboot/boot/zephyr/build",
+                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr/build",
             ],
             "problemMatcher": [
                 "$gcc"
