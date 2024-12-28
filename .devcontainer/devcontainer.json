@@ -11,6 +11,11 @@
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
         "editor.renderWhitespace": "all",
+        "editor.rulers": [
+          100
+        ],
+        "editor.fontFamily": "'Fira Code', monospace",
+        "editor.fontLigatures": true,
         "workbench.iconTheme": "material-icon-theme",
         "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-${containerEnv:ZSDK_VERSION}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
         "C_Cpp.default.compileCommands": "${workspaceFolder}/app/build/compile_commands.json",

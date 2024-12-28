@@ -27,3 +27,16 @@ if [ -d ".vscode" ]; then
 else
     cp -r app/.vscode .
 fi
+
+# Download and install Fira Code
+echo "[setup.sh] Downloading and installing Fira Code font"
+fonts_dir="${HOME}/.fonts"
+mkdir -p "${fonts_dir}"
+version=5.2
+zip=Fira_Code_v${version}.zip
+wget --no-verbose https://github.com/tonsky/FiraCode/releases/download/${version}/${zip} -O ${zip}
+unzip -o -q -d "${fonts_dir}" "${zip}"
+rm "${zip}"
+
+echo "fc-cache -f"
+fc-cache -f

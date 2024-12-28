@@ -27,10 +27,10 @@ static void onNetworkAvailableAction();
 static void startOtaUpdateAction();
 
 // Download firmware image from remote HTTP server
-static void downloadImage(const char *url, const char *endpoint);
+static void downloadImage(const char *host, const char *endpoint);
 
 // Confirm the currently run image
-static void confirmImage();
+static bool confirmCurrentImage();
 
 // ZBUS subscribers definition
 ZBUS_SUBSCRIBER_DEFINE(updaterSubscriber, 4);
@@ -58,12 +58,17 @@ static void updaterThreadHandler() {
   int ret = 0;
   event_t event = {.id = EVENT_INITIAL_VALUE};
 
-  confirmImage();
-
-  while (true) {
-    ret = waitForEvent(&updaterSubscriber, &event, K_FOREVER);
-    if (ret == 0) {
-      processEvent(&event, eventActionList, EVENT_ACTION_LIST_SIZE(eventActionList));
+  if (confirmCurrentImage() == false) {
+    while (true) {
+      ret = waitForEvent(&updaterSubscriber, &event, K_FOREVER);
+      if (ret == 0) {
+        processEvent(&event, eventActionList, EVENT_ACTION_LIST_SIZE(eventActionList));
+      }
+    }
+  } else {
+    LOG_ERR("Failed to confirm current image");
+    while (true) {
+      k_msleep(1000);
     }
   }
 }
@@ -86,12 +91,18 @@ static void startOtaUpdateAction() {
   }
 }
 
-static void downloadImage(const char *url, const char *endpoint) {
+static void downloadImage(const char *host, const char *endpoint) {
   int ret = 0;
-  assert(url);
+
+  assert(host);
   assert(endpoint);
 
-  HttpClient client((char *)url);
+  if ((host == NULL) || (endpoint == NULL)) {
+    LOG_ERR("Invalid host or endpoint");
+    return;
+  }
+
+  HttpClient client((char *)host);
 
   // Initialize context needed for writing the image to the flash
   ret = flash_img_init(&flashContext);
@@ -150,14 +161,14 @@ static void downloadImage(const char *url, const char *endpoint) {
   });
 }
 
-static void confirmImage() {
+static bool confirmCurrentImage() {
   int ret = 0;
-  bool imageOk = false;
+  bool imageIsConfirmed = false;
   struct mcuboot_img_header header = {0};
 
   if (boot_read_bank_header(FIXED_PARTITION_ID(slot0_partition), &header, sizeof(header)) != 0) {
     LOG_ERR("Failed to read slot0_partition header");
-    return;
+    return false;
   }
 
   LOG_INF("Bootloader version: %d.x.y", header.mcuboot_version);
@@ -167,20 +178,22 @@ static void confirmImage() {
           header.h.v1.sem_ver.revision);
 
   // On boot verify if current image is confirmed, if not confirm it
-  imageOk = boot_is_img_confirmed();
-  LOG_INF("Image is%s confirmed OK", imageOk ? "" : " not");
-  if (!imageOk) {
+  imageIsConfirmed = boot_is_img_confirmed();
+  LOG_INF("Image is%s confirmed", imageIsConfirmed ? "" : " not");
+  if (!imageIsConfirmed) {
+    LOG_INF("Marking image as confirmed...");
     ret = boot_write_img_confirmed();
     if (ret < 0) {
       LOG_ERR("Couldn't confirm this image: %d", ret);
-      return;
+      return false;
     }
 
-    LOG_INF("Marked image as OK");
+    LOG_INF("Marked image as confirmed");
     ret = boot_erase_img_bank(FIXED_PARTITION_ID(slot1_partition));
     if (ret) {
       LOG_ERR("Failed to erase second slot: %d", ret);
-      return;
+      return false;
     }
   }
+  return true;
 }

@@ -28,9 +28,8 @@ int main(void) {
   const struct gpio_dt_spec buttonGpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(sw0), gpios, {0});
   Button button(&buttonGpio);
   event_t buttonEvent = {.id = EVENT_NETWORK_AVAILABLE};
-  Network& network = Network::getInstance();
 
-  network.onGotIP([](const char *ipAddress) {
+  Network::getInstance().onGotIP([](const char *ipAddress) {
     event_t networkEvent = {.id = EVENT_NETWORK_AVAILABLE};
   
     LOG_INF("Got IP address: %s", ipAddress);
@@ -39,7 +38,7 @@ int main(void) {
 
   LOG_INF("Waiting for network connection...");
   k_msleep(5000);
-  network.start();
+  Network::getInstance().start();
 
   while (true) {
     if (button.isPressed()) {
