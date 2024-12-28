@@ -33,14 +33,20 @@
             "type": "pickString",
             "description": "Select the device to debug",
             "default": "STM32F767ZI",
-            "options": ["STM32F767ZI", "STM32U575ZI"]
+            "options": [
+                "STM32F767ZI",
+                "STM32U575ZI"
+            ]
         },
         {
             "id": "board",
             "type": "pickString",
             "description": "Select the board configuration",
             "default": "nucleo_f767zi",
-            "options": ["nucleo_f767zi", "nucleo_u575zi_q"]
+            "options": [
+                "nucleo_f767zi",
+                "nucleo_u575zi_q"
+            ]
         }
     ]
 }

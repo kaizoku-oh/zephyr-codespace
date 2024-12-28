@@ -9,15 +9,45 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.shell.linux": "/bin/bash",
+        "terminal.integrated.defaultProfile.linux": "bash",
         "editor.renderWhitespace": "all",
         "workbench.iconTheme": "material-icon-theme",
-        "cmake.configureOnOpen": false,
         "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-${containerEnv:ZSDK_VERSION}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
         "C_Cpp.default.compileCommands": "${workspaceFolder}/app/build/compile_commands.json",
         "cortex-debug.openocdPath.linux": "/opt/toolchains/zephyr-sdk-${containerEnv:ZSDK_VERSION}/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
         "files.associations": {}
-      }
+      },
+      "keybindings": [
+        {
+          "key": "ctrl+j",
+          "command": "editor.action.joinLines",
+          "when": "editorTextFocus"
+        },
+        {
+          "key": "ctrl+shift+k",
+          "command": "editor.action.commentLine",
+          "when": "editorTextFocus"
+        },
+        {
+          "key": "ctrl+alt+k",
+          "command": "editor.action.blockComment",
+          "when": "editorTextFocus"
+        }
+      ],
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-python.python",
+        "ms-vscode.vscode-embedded-tools",
+        "marus25.cortex-debug",
+        "plorefice.devicetree",
+        "PKief.material-icon-theme",
+        "streetsidesoftware.code-spell-checker",
+        "eamodio.gitlens",
+        "ms-vscode.hexeditor",
+        "dan-c-underwood.arm",
+        "ZixuanWang.linkerscript",
+        "Gruntfuggly.todo-tree"
+      ]
     }
   },
   "runArgs": [

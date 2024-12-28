@@ -157,7 +157,10 @@
             "type": "pickString",
             "default": "nucleo_f767zi",
             "description": "See https://docs.zephyrproject.org/latest/boards/st",
-            "options": ["nucleo_f767zi", "nucleo_u575zi_q"]
+            "options": [
+                "nucleo_f767zi",
+                "nucleo_u575zi_q"
+            ]
         }
     ]
 }

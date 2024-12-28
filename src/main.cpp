@@ -1,3 +1,6 @@
+/*-----------------------------------------------------------------------------------------------*/
+/* Includes                                                                                      */
+/*-----------------------------------------------------------------------------------------------*/
 // Lib C includes
 #include <stdlib.h>
 #include <stdbool.h>
@@ -12,6 +15,14 @@ LOG_MODULE_REGISTER(main);
 #include "EventManager.h"
 #include "Network.h"
 
+/*-----------------------------------------------------------------------------------------------*/
+/* Public functions                                                                              */
+/*-----------------------------------------------------------------------------------------------*/
+/**
+  * @brief Program entry point
+  * @param None
+  * @retval None
+  */
 int main(void) {
   Network& network = Network::getInstance();
 
@@ -33,6 +44,12 @@ int main(void) {
   return EXIT_FAILURE;
 }
 
+/**
+  * @brief Fatal error handler callback
+  * @param reason Reason for the fatal error
+  * @param context Exception context, with details and partial or full register
+  * @retval None
+  */
 void k_sys_fatal_error_handler(unsigned int reason, const z_arch_esf_t *context) {
   struct k_thread *faultingThread = NULL;
 
