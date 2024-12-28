@@ -53,7 +53,7 @@ static void updaterThreadHandler() {
   int ret = 0;
   event_t event = {.id = EVENT_INITIAL_VALUE};
 
-  if (confirmCurrentImage() == false) {
+  if (confirmCurrentImage() == true) {
     while (true) {
       ret = waitForEvent(&updaterSubscriber, &event, K_FOREVER);
       if (ret == 0) {
@@ -87,53 +87,77 @@ static void startOtaUpdateAction() {
 }
 
 static void downloadImage(const char *host, const char *endpoint) {
-  int ret = 0;
-
-  assert(host);
-  assert(endpoint);
-
-  if ((host == NULL) || (endpoint == NULL)) {
-    LOG_ERR("Invalid host or endpoint");
-    return;
-  }
-
-  HttpClient client((char *)host);
-
-  // Initialize context needed for writing the image to the flash
-  ret = flash_img_init(&flashContext);
-  if (ret < 0) {
-    LOG_ERR("Flash context init error: %d", ret);
-    return;
-  }
-
-  // Download image
-  client.get(endpoint, [](HttpResponse *response) {
     int ret = 0;
-    size_t totalSizeWrittenToFlash = 0;
 
-    // Get the total firmware size
-    if (totalDownloadSize == 0) {
-      totalDownloadSize = response->totalSize;
-      LOG_INF("File size to download: %d bytes", totalDownloadSize);
-    }
+    assert(host);
+    assert(endpoint);
 
-    // Write the downloaded chunk to flash
-    ret = flash_img_buffered_write(&flashContext,
-                                   response->body,
-                                   response->bodyLength,
-                                   (response->isComplete));
-    if (ret < 0) {
-      LOG_ERR("Flash write error: %d", ret);
+    if ((host == NULL) || (endpoint == NULL)) {
+      LOG_ERR("Invalid host or endpoint");
       return;
     }
-    k_msleep(10);
 
-    // Increase currently downloaded size each time we download a chunk
-    currentDownloadedSize += response->bodyLength;
-    printk("\rDownloading: %d/%d bytes", currentDownloadedSize, totalDownloadSize);
+    HttpClient client((char *)host);
 
-    // Verify that we received all the chunks
-    if (response->isComplete) {
+    // Initialize context needed for writing the image to the flash
+    ret = flash_img_init(&flashContext);
+    if (ret < 0) {
+      LOG_ERR("Flash context init error: %d", ret);
+      return;
+    }
+
+    // Download image
+    client.get(endpoint, [](HttpResponse *response) {
+      int ret = 0;
+      int percentage = 0;
+      int completed = 0;
+      size_t totalSizeWrittenToFlash = 0;
+      const char *green = "\033[0;32m";
+      const char *reset = "\033[0m";
+
+      // Get the total firmware size
+      if (totalDownloadSize == 0) {
+        totalDownloadSize = response->totalSize;
+        LOG_INF("File size to download: %d bytes", totalDownloadSize);
+      }
+
+      // Write the downloaded chunk to flash
+      ret = flash_img_buffered_write(&flashContext,
+                                     response->body,
+                                     response->bodyLength,
+                                     (response->isComplete));
+      if (ret < 0) {
+        LOG_ERR("Flash write error: %d", ret);
+        return;
+      }
+      k_msleep(10);
+
+      // Increase currently downloaded size each time we download a chunk
+      currentDownloadedSize += response->bodyLength;
+      // printk("\rDownloading: %d/%d bytes", currentDownloadedSize, totalDownloadSize);
+
+      // Calculate percentage
+      percentage = (currentDownloadedSize * 100) / totalDownloadSize;
+
+      // Print the progress bar to the console
+      // Move cursor to the start of the line and print the left bracket
+      printk("\r[");
+
+      // Draw the completed part in green
+      // Adjust to fit bar width
+      completed = (percentage * 50) / 100;
+      printk("%s", green);
+      for (int i = 0; i < completed; i++) { printk("█"); }
+      printk("%s", reset);
+
+      // Fill the remaining space
+      for (int i = completed; i < 50; i++) { printk(" "); }
+
+      // Add percentage and a plant emoji
+      printk("] %3d%% 🌱", percentage);
+
+      // Verify that we received all the chunks
+      if (response->isComplete) {
         totalSizeWrittenToFlash = flash_img_bytes_written(&flashContext);
         LOG_INF("\r\nFile size downloaded: %d bytes", currentDownloadedSize);
         LOG_INF("File size written to flash: %d bytes", currentDownloadedSize);
@@ -149,10 +173,10 @@ static void downloadImage(const char *host, const char *endpoint) {
             return;
           }
 #endif // VERIFY_DOWNLOADED_IMAGE_HASH
-      } else {
-        LOG_ERR("The size written to flash is different than the one downloaded");
+        } else {
+          LOG_ERR("The size written to flash is different than the one downloaded");
+        }
       }
-    }
   });
 }
 
