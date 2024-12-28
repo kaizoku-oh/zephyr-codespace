@@ -14,6 +14,7 @@ manifest:
       revision: a6eef0ba3755f2530c5ce93524e5ac4f5be30194 # v3.5.0
       path: zephyr
       import:
+        path-prefix: deps
         name-allowlist:
           - cmsis
           - hal_stm32

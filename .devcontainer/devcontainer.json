@@ -58,5 +58,8 @@
     "--privileged",
     "--device=/dev/bus/usb:/dev/bus/usb"
   ],
-  "remoteUser": "user"
+  "remoteUser": "user",
+  "containerEnv": {
+    "ZEPHYR_BASE": "/workdir/deps/zephyr"
+  }
 }
