@@ -27,7 +27,7 @@ LOG_MODULE_REGISTER(main);
 int main(void) {
   const struct gpio_dt_spec buttonGpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(sw0), gpios, {0});
   Button button(&buttonGpio);
-  event_t eventToPublish = {.id = EVENT_NETWORK_AVAILABLE};
+  event_t eventToPublish = {.id = EVENT_BUTTON_PRESSED};
 
   Network::getInstance().onNetworkEvent([](NetworkEvent event, void *arg) {
     event_t eventToPublish = {.id = EVENT_NETWORK_AVAILABLE};
