@@ -14,11 +14,11 @@ west zephyr-export
 
 # Install Python dependencies required by Zephyr
 echo "[setup.sh] Installing Python dependencies required by Zephyr"
-pip install -r zephyr/scripts/requirements.txt
+pip install -r deps/zephyr/scripts/requirements.txt
 
 # Install Python dependencies required by MCUBoot
 echo "[setup.sh] Installing Python dependencies required by MCUBoot"
-pip install -r bootloader/mcuboot/scripts/requirements.txt
+pip install -r deps/bootloader/mcuboot/scripts/requirements.txt
 
 # Copy .vscode to outer directory
 echo "[setup.sh] Copying .vscode to outer workspace directory"
