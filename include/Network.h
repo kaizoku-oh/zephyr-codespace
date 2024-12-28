@@ -46,15 +46,22 @@ static void networkThreadHandler() {
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/net_mgmt.h>
 
+enum class NetworkEvent {
+  GOT_IP,
+  LOST_IP,
+  UP,
+  DOWN,
+};
+
 class Network {
 public:
-  std::function<void(const char *)> callback;
+  std::function<void(NetworkEvent, void *)> callback;
 
   // Static method to access the singleton instance
   static Network& getInstance();
 
   void start();
-  void onGotIP(std::function<void(const char *)> callback);
+  void onNetworkEvent(std::function<void(NetworkEvent, void *)> callback);
 
 private:
   // Private constructor to prevent direct instantiation
@@ -63,8 +70,8 @@ private:
 
   // Static member to hold the singleton instance
   static Network instance;
-  struct net_mgmt_event_callback mgmtEventCb;
   struct net_if *netIface;
+  struct net_mgmt_event_callback mgmtEventCb;
 };
 
 #endif // NETWORK_H

@@ -27,23 +27,44 @@ LOG_MODULE_REGISTER(main);
 int main(void) {
   const struct gpio_dt_spec buttonGpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(sw0), gpios, {0});
   Button button(&buttonGpio);
-  event_t buttonEvent = {.id = EVENT_NETWORK_AVAILABLE};
+  event_t eventToPublish = {.id = EVENT_NETWORK_AVAILABLE};
 
-  Network::getInstance().onGotIP([](const char *ipAddress) {
-    event_t networkEvent = {.id = EVENT_NETWORK_AVAILABLE};
-  
-    LOG_INF("Got IP address: %s", ipAddress);
-    zbus_chan_pub(&eventsChannel, &networkEvent, K_NO_WAIT);
+  Network::getInstance().onNetworkEvent([](NetworkEvent event, void *arg) {
+    event_t eventToPublish = {.id = EVENT_NETWORK_AVAILABLE};
+
+    switch (event) {
+      case NetworkEvent::UP: {
+        LOG_INF("Network interface is up!");
+        break;
+      }
+      case NetworkEvent::DOWN: {
+        LOG_INF("Network interface is down!");
+        break;
+      }
+      case NetworkEvent::GOT_IP: {
+        LOG_INF("Got IP address: %s", (const char *)arg);
+        zbus_chan_pub(&eventsChannel, &eventToPublish, K_NO_WAIT);
+        break;
+      }
+      case NetworkEvent::LOST_IP: {
+        LOG_INF("Lost IP address");
+        zbus_chan_pub(&eventsChannel, &eventToPublish, K_NO_WAIT);
+        break;
+      }
+      default: {
+        LOG_ERR("Unknown network event (%d)", (int)event);
+        break;
+      }
+    }
   });
 
   LOG_INF("Waiting for network connection...");
-  k_msleep(5000);
   Network::getInstance().start();
 
   while (true) {
     if (button.isPressed()) {
       LOG_INF("Button is pressed");
-      zbus_chan_pub(&eventsChannel, &buttonEvent, K_NO_WAIT);
+      zbus_chan_pub(&eventsChannel, &eventToPublish, K_NO_WAIT);
     }
     k_msleep(300);
   }

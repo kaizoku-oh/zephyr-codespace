@@ -19,17 +19,11 @@ LOG_MODULE_REGISTER(Updater);
 #include "EventManager.h"
 #include "HttpClient.h"
 
-// Function declaration of thread handlers
+// Function declarations
 static void updaterThreadHandler();
-
-// Function declaration of event actions
 static void onNetworkAvailableAction();
 static void startOtaUpdateAction();
-
-// Download firmware image from remote HTTP server
 static void downloadImage(const char *host, const char *endpoint);
-
-// Confirm the currently run image
 static bool confirmCurrentImage();
 
 // ZBUS subscribers definition
@@ -41,6 +35,7 @@ ZBUS_CHAN_ADD_OBS(eventsChannel, updaterSubscriber, 4);
 // Thread definition
 K_THREAD_DEFINE(updaterThread, 4096, updaterThreadHandler, NULL, NULL, NULL, 7, 0, 0);
 
+// Event-Action pairs
 static const event_action_pair_t eventActionList[] {
   {EVENT_BUTTON_PRESSED,    startOtaUpdateAction    },
   {EVENT_NETWORK_AVAILABLE, onNetworkAvailableAction},
