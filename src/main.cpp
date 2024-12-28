@@ -14,6 +14,7 @@ LOG_MODULE_REGISTER(main);
 // User C++ class headers
 #include "EventManager.h"
 #include "Network.h"
+#include "Button.h"
 
 /*-----------------------------------------------------------------------------------------------*/
 /* Public functions                                                                              */
@@ -24,13 +25,16 @@ LOG_MODULE_REGISTER(main);
   * @retval None
   */
 int main(void) {
+  const struct gpio_dt_spec buttonGpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(sw0), gpios, {0});
+  Button button(&buttonGpio);
+  event_t buttonEvent = {.id = EVENT_NETWORK_AVAILABLE};
   Network& network = Network::getInstance();
 
   network.onGotIP([](const char *ipAddress) {
-    event_t event = {.id = EVENT_NETWORK_AVAILABLE};
+    event_t networkEvent = {.id = EVENT_NETWORK_AVAILABLE};
   
     LOG_INF("Got IP address: %s", ipAddress);
-    zbus_chan_pub(&eventsChannel, &event, K_NO_WAIT);
+    zbus_chan_pub(&eventsChannel, &networkEvent, K_NO_WAIT);
   });
 
   LOG_INF("Waiting for network connection...");
@@ -38,7 +42,11 @@ int main(void) {
   network.start();
 
   while (true) {
-    k_msleep(1000);
+    if (button.isPressed()) {
+      LOG_INF("Button is pressed");
+      zbus_chan_pub(&eventsChannel, &buttonEvent, K_NO_WAIT);
+    }
+    k_msleep(300);
   }
 
   return EXIT_FAILURE;

@@ -13,4 +13,5 @@ target_sources(app PRIVATE
   src/HttpClient.cpp
   src/Updater.cpp
   src/Temperature.cpp
+  src/Button.cpp
 )
