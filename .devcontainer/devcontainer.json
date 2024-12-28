@@ -15,7 +15,11 @@
         "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-${containerEnv:ZSDK_VERSION}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
         "C_Cpp.default.compileCommands": "${workspaceFolder}/app/build/compile_commands.json",
         "cortex-debug.openocdPath.linux": "/opt/toolchains/zephyr-sdk-${containerEnv:ZSDK_VERSION}/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
-        "files.associations": {}
+        "files.associations": {
+          "*.overlay": "DeviceTree",
+          "*.dts": "DeviceTree",
+          "*.dtsi": "DeviceTree"
+        }
       },
       "keybindings": [
         {
