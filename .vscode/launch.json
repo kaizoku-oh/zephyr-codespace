@@ -12,11 +12,11 @@
             "type": "cortex-debug",
             "runToEntryPoint": "main",
             "servertype": "openocd",
-            "serverpath": "/opt/toolchains/zephyr-sdk-0.17.0/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
+            "serverpath": "/opt/toolchains/zephyr-sdk-${env:ZSDK_VERSION}/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
             "device": "${input:device}",
             "interface": "swd",
-            "gdbPath": "/opt/toolchains/zephyr-sdk-0.17.0/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb",
-            "armToolchainPath": "/opt/toolchains/zephyr-sdk-0.17.0/arm-zephyr-eabi/bin",
+            "gdbPath": "/opt/toolchains/zephyr-sdk-${env:ZSDK_VERSION}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb",
+            "armToolchainPath": "/opt/toolchains/zephyr-sdk-${env:ZSDK_VERSION}/arm-zephyr-eabi/bin",
             "toolchainPrefix": "arm-zephyr-eabi",
             "configFiles": [
                 "${workspaceFolder}/zephyr/boards/arm/${input:board}/support/openocd.cfg"

@@ -9,59 +9,19 @@
   "customizations": {
     "vscode": {
       "settings": {
-        // Default terminal
         "terminal.integrated.shell.linux": "/bin/bash",
-        // Render whitespaces
         "editor.renderWhitespace": "all",
-        // Use material icon theme
         "workbench.iconTheme": "material-icon-theme",
-        // Hush CMake
         "cmake.configureOnOpen": false,
-        // IntelliSense
-        "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-0.16.5-1/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
+        "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-${containerEnv:ZSDK_VERSION}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
         "C_Cpp.default.compileCommands": "${workspaceFolder}/app/build/compile_commands.json",
-        // cortex-debug extension config
-        "cortex-debug.openocdPath.linux": "/opt/toolchains/zephyr-sdk-0.16.5-1/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
-        // File Associations
+        "cortex-debug.openocdPath.linux": "/opt/toolchains/zephyr-sdk-${containerEnv:ZSDK_VERSION}/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
         "files.associations": {}
-      },
-      "keybindings": [
-        {
-          "key": "ctrl+j",
-          "command": "editor.action.joinLines",
-          "when": "editorTextFocus"
-        },
-        {
-          "key": "ctrl+shift+k",
-          "command": "editor.action.commentLine",
-          "when": "editorTextFocus"
-        },
-        {
-          "key": "ctrl+alt+k",
-          "command": "editor.action.blockComment",
-          "when": "editorTextFocus"
-        }
-      ],
-      "extensions": [
-        "ms-vscode.cpptools",
-        "ms-python.python",
-        "ms-vscode.vscode-embedded-tools",
-        "marus25.cortex-debug",
-        "plorefice.devicetree",
-        "PKief.material-icon-theme",
-        "streetsidesoftware.code-spell-checker",
-        "eamodio.gitlens",
-        "ms-vscode.hexeditor",
-        "dan-c-underwood.arm",
-        "ZixuanWang.linkerscript",
-        "Gruntfuggly.todo-tree"
-      ]
+      }
     }
   },
   "runArgs": [
-    // Optionally, give the container privileged access (useful for hardware access if needed)
     "--privileged",
-    // Grants access to USB devices
     "--device=/dev/bus/usb:/dev/bus/usb"
   ],
   "remoteUser": "user"

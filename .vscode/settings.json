@@ -3,8 +3,8 @@
     "editor.renderWhitespace": "all",
     "workbench.iconTheme": "material-icon-theme",
     "cmake.configureOnOpen": false,
-    "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-0.16.5-1/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
+    "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-${env:ZSDK_VERSION}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
     "C_Cpp.default.compileCommands": "${workspaceFolder}/app/build/compile_commands.json",
-    "cortex-debug.openocdPath.linux": "/opt/toolchains/zephyr-sdk-0.16.5-1/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
+    "cortex-debug.openocdPath.linux": "/opt/toolchains/zephyr-sdk-${env:ZSDK_VERSION}/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
     "files.associations": {}
 }

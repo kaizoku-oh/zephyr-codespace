@@ -74,6 +74,7 @@ Contributions are welcome! Feel free to open issues, submit pull requests, or sh
 - **Zephyr Project** for their awesome project.
 - **VS Code** and its amazing ecosystem.
 - **Cortex-Debug Extension** for simplifying embedded debugging.
+- **Golioth** for the directory structure and the helpful blog posts.
 
 ---
 
