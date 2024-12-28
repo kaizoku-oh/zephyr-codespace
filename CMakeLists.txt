@@ -11,5 +11,6 @@ target_sources(app PRIVATE
   src/EventManager.cpp
   src/Network.cpp
   src/HttpClient.cpp
-  src/ServiceUpdater.cpp
+  src/Updater.cpp
+  src/Temperature.cpp
 )
