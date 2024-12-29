@@ -1,11 +1,8 @@
-# Take ownership of the following directories
-echo "[setup.sh] Taking ownership of the workdir/ directory"
-sudo chown -R user:user /workdir/
-sudo chown -R user:user /opt/toolchains/zephyr-sdk-0.16.5-1/sysroots/x86_64-pokysdk-linux/usr/bin
-
 # Initialize the west repository in the 'app' subdirectory
-echo "[setup.sh] Initializing the west repository in the 'app' subdirectory"
-west init -l app
+if [ ! -d ".west" ]; then
+    echo "[setup.sh] Initializing the west repository in the 'app' subdirectory"
+    west init -l app
+fi
 
 # Make sure the workspace contains Git repositories matching the projects in the manifest file
 echo "[setup.sh] Updating west repository"
@@ -17,11 +14,11 @@ west zephyr-export
 
 # Install Python dependencies required by Zephyr
 echo "[setup.sh] Installing Python dependencies required by Zephyr"
-pip install -r zephyr/scripts/requirements.txt
+pip install -r deps/zephyr/scripts/requirements.txt
 
 # Install Python dependencies required by MCUBoot
 echo "[setup.sh] Installing Python dependencies required by MCUBoot"
-pip install -r bootloader/mcuboot/scripts/requirements.txt
+pip install -r deps/bootloader/mcuboot/scripts/requirements.txt
 
 # Copy .vscode to outer directory
 echo "[setup.sh] Copying .vscode to outer workspace directory"
@@ -30,3 +27,16 @@ if [ -d ".vscode" ]; then
 else
     cp -r app/.vscode .
 fi
+
+# Download and install Fira Code
+echo "[setup.sh] Downloading and installing Fira Code font"
+fonts_dir="${HOME}/.fonts"
+mkdir -p "${fonts_dir}"
+version=5.2
+zip=Fira_Code_v${version}.zip
+wget --no-verbose https://github.com/tonsky/FiraCode/releases/download/${version}/${zip} -O ${zip}
+unzip -o -q -d "${fonts_dir}" "${zip}"
+rm "${zip}"
+
+echo "fc-cache -f"
+fc-cache -f

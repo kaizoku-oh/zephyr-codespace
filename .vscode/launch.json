@@ -12,18 +12,41 @@
             "type": "cortex-debug",
             "runToEntryPoint": "main",
             "servertype": "openocd",
-            "device": "STM32F767ZI",
+            "serverpath": "/opt/toolchains/zephyr-sdk-${env:ZSDK_VERSION}/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
+            "device": "${input:device}",
             "interface": "swd",
-            "gdbPath": "/opt/toolchains/zephyr-sdk-0.16.5-1/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb",
-            "armToolchainPath": "/opt/toolchains/zephyr-sdk-0.16.5-1/arm-zephyr-eabi/bin",
+            "gdbPath": "/opt/toolchains/zephyr-sdk-${env:ZSDK_VERSION}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb",
+            "armToolchainPath": "/opt/toolchains/zephyr-sdk-${env:ZSDK_VERSION}/arm-zephyr-eabi/bin",
             "toolchainPrefix": "arm-zephyr-eabi",
             "configFiles": [
-                "${workspaceFolder}/zephyr/boards/arm/nucleo_f767zi/support/openocd.cfg"
+                "${workspaceFolder}/deps/zephyr/boards/arm/${input:board}/support/openocd.cfg"
             ],
             "searchDir": [
-                "/workdir/zephyr/boards/arm/nucleo_f767zi/support"
+                "${workspaceFolder}/deps/zephyr/boards/arm/${input:board}/support"
             ],
-            "showDevDebugOutput": "raw",
+            "showDevDebugOutput": "raw"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "device",
+            "type": "pickString",
+            "description": "Select the device to debug",
+            "default": "STM32F767ZI",
+            "options": [
+                "STM32F767ZI",
+                "STM32U575ZI"
+            ]
         },
+        {
+            "id": "board",
+            "type": "pickString",
+            "description": "Select the board configuration",
+            "default": "nucleo_f767zi",
+            "options": [
+                "nucleo_f767zi",
+                "nucleo_u575zi_q"
+            ]
+        }
     ]
 }

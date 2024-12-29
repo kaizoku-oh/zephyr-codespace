@@ -5,8 +5,16 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(app)
 
 target_include_directories(app PRIVATE include)
-target_include_directories(app PUBLIC ${ZEPHYR_BASE}/../modules/lib/golioth-firmware-sdk/examples/zephyr/common/include)
 
 target_sources(app PRIVATE
-  src/main.c
+  src/main.cpp
+  src/EventManager.cpp
+  src/Network.cpp
+  src/HttpClient.cpp
+  src/Temperature.cpp
+  src/Button.cpp
 )
+
+if(CONFIG_BOOTLOADER_MCUBOOT)
+  target_sources(app PRIVATE src/Updater.cpp)
+endif()

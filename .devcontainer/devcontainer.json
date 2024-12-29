@@ -2,23 +2,47 @@
   "image": "ghcr.io/zephyrproject-rtos/zephyr-build:latest",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workdir/app,type=bind",
   "workspaceFolder": "/workdir",
-  "onCreateCommand": "app/.devcontainer/setup.sh",
+  "onCreateCommand": "app/scripts/setup.sh",
   "mounts": [
     "source=${localWorkspaceFolder}/.vscode/,target=/workdir/.vscode,type=bind,consistency=cached"
   ],
   "customizations": {
     "vscode": {
       "settings": {
-        // Hush CMake
-        "cmake.configureOnOpen": false,
-        // IntelliSense
-        "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-0.16.5-1/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.renderWhitespace": "all",
+        "editor.rulers": [
+          100
+        ],
+        "editor.fontFamily": "'Fira Code', monospace",
+        "editor.fontLigatures": true,
+        "workbench.iconTheme": "material-icon-theme",
+        "C_Cpp.default.compilerPath": "/opt/toolchains/zephyr-sdk-${containerEnv:ZSDK_VERSION}/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc",
         "C_Cpp.default.compileCommands": "${workspaceFolder}/app/build/compile_commands.json",
-        // cortex-debug extension config
-        "cortex-debug.openocdPath.linux": "/opt/toolchains/zephyr-sdk-0.16.5-1/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
-        // File Associations
-        "files.associations": {}
+        "cortex-debug.openocdPath.linux": "/opt/toolchains/zephyr-sdk-${containerEnv:ZSDK_VERSION}/sysroots/x86_64-pokysdk-linux/usr/bin/openocd",
+        "files.associations": {
+          "*.overlay": "DeviceTree",
+          "*.dts": "DeviceTree",
+          "*.dtsi": "DeviceTree"
+        }
       },
+      "keybindings": [
+        {
+          "key": "ctrl+j",
+          "command": "editor.action.joinLines",
+          "when": "editorTextFocus"
+        },
+        {
+          "key": "ctrl+shift+k",
+          "command": "editor.action.commentLine",
+          "when": "editorTextFocus"
+        },
+        {
+          "key": "ctrl+alt+k",
+          "command": "editor.action.blockComment",
+          "when": "editorTextFocus"
+        }
+      ],
       "extensions": [
         "ms-vscode.cpptools",
         "ms-python.python",
@@ -28,14 +52,19 @@
         "PKief.material-icon-theme",
         "streetsidesoftware.code-spell-checker",
         "eamodio.gitlens",
-        "nick-rudenko.back-n-forth",
-        "ms-vscode.hexeditor"
+        "ms-vscode.hexeditor",
+        "dan-c-underwood.arm",
+        "ZixuanWang.linkerscript",
+        "Gruntfuggly.todo-tree"
       ]
     }
   },
-  // Uncomment these to use on your local PC
-  // Access USB port from the docker container
-  // "runArgs": [
-  //   "--device=/dev/bus/usb/"
-  // ]
+  "runArgs": [
+    "--privileged",
+    "--device=/dev/bus/usb:/dev/bus/usb"
+  ],
+  "remoteUser": "user",
+  "containerEnv": {
+    "ZEPHYR_BASE": "/workdir/deps/zephyr"
+  }
 }
