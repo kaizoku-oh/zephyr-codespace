@@ -20,8 +20,8 @@ LOG_MODULE_REGISTER(main);
 /* Public functions                                                                              */
 /*-----------------------------------------------------------------------------------------------*/
 /**
-  * @brief Program entry point
-  * @param None
+  * @brief  Program entry point
+  * @param  None
   * @retval None
   */
 int main(void) {
@@ -42,7 +42,7 @@ int main(void) {
         break;
       }
       case NetworkEvent::GOT_IP: {
-        LOG_INF("Got IP address: %s", (const char *)arg);
+        LOG_INF("Got IP address: %s", (char *)arg);
         zbus_chan_pub(&eventsChannel, &eventToPublish, K_NO_WAIT);
         break;
       }
@@ -73,9 +73,9 @@ int main(void) {
 }
 
 /**
-  * @brief Fatal error handler callback
-  * @param reason Reason for the fatal error
-  * @param context Exception context, with details and partial or full register
+  * @brief  Fatal error handler callback
+  * @param  reason Reason for the fatal error
+  * @param  context Exception context, with details and partial or full register
   * @retval None
   */
 void k_sys_fatal_error_handler(unsigned int reason, const z_arch_esf_t *context) {

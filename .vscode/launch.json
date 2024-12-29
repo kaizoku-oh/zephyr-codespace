@@ -19,10 +19,10 @@
             "armToolchainPath": "/opt/toolchains/zephyr-sdk-${env:ZSDK_VERSION}/arm-zephyr-eabi/bin",
             "toolchainPrefix": "arm-zephyr-eabi",
             "configFiles": [
-                "${workspaceFolder}/zephyr/boards/arm/${input:board}/support/openocd.cfg"
+                "${workspaceFolder}/deps/zephyr/boards/arm/${input:board}/support/openocd.cfg"
             ],
             "searchDir": [
-                "${workspaceFolder}/zephyr/boards/arm/${input:board}/support"
+                "${workspaceFolder}/deps/zephyr/boards/arm/${input:board}/support"
             ],
             "showDevDebugOutput": "raw"
         }

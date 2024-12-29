@@ -11,7 +11,10 @@ target_sources(app PRIVATE
   src/EventManager.cpp
   src/Network.cpp
   src/HttpClient.cpp
-  src/Updater.cpp
   src/Temperature.cpp
   src/Button.cpp
 )
+
+if(CONFIG_BOOTLOADER_MCUBOOT)
+  target_sources(app PRIVATE src/Updater.cpp)
+endif()

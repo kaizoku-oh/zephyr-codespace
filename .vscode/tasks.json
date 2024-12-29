@@ -31,7 +31,8 @@
                 "-p",
                 "auto",
                 "-b",
-                "${input:board}"
+                "${input:board}",
+                "--pristine"
             ],
             "problemMatcher": [
                 "$gcc"
@@ -78,7 +79,8 @@
                 "-p",
                 "auto",
                 "-b",
-                "${input:board}"
+                "${input:board}",
+                "--pristine"
             ],
             "problemMatcher": [
                 "$gcc"
@@ -101,7 +103,8 @@
                 "-p",
                 "auto",
                 "-b",
-                "${input:board}"
+                "${input:board}",
+                "--pristine"
             ],
             "problemMatcher": [
                 "$gcc"
