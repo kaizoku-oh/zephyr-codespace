@@ -12,6 +12,7 @@
 #include <zephyr/dfu/mcuboot.h>
 #include <zephyr/dfu/flash_img.h>
 #include <zephyr/storage/flash_map.h>
+#include <zephyr/shell/shell.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(Updater);
 
@@ -25,6 +26,7 @@ static void onNetworkAvailableAction();
 static void startOtaUpdateAction();
 static void downloadImage(const char *host, const char *endpoint);
 static bool confirmCurrentImage();
+static int shellUpdateCommandHandler(const struct shell *shell, size_t argc, char **argv);
 
 // ZBUS subscribers definition
 ZBUS_SUBSCRIBER_DEFINE(updaterSubscriber, 4);
@@ -34,6 +36,9 @@ ZBUS_CHAN_ADD_OBS(eventsChannel, updaterSubscriber, 4);
 
 // Thread definition
 K_THREAD_DEFINE(updaterThread, 4096, updaterThreadHandler, NULL, NULL, NULL, 7, 0, 0);
+
+// Shell command registration
+SHELL_CMD_ARG_REGISTER(update, NULL, "Start OTA update process", shellUpdateCommandHandler, 1, 0);
 
 // Event-Action pairs
 static const event_action_pair_t eventActionList[] {
@@ -215,4 +220,18 @@ static bool confirmCurrentImage() {
     }
   }
   return true;
+}
+
+static int shellUpdateCommandHandler(const struct shell *shell, size_t argc, char **argv) {
+  ARG_UNUSED(argc);
+  ARG_UNUSED(argv);
+
+  shell_print(shell, "Starting OTA update...");
+  if (networkIsAvailable) {
+    startOtaUpdateAction();
+  } else {
+    shell_error(shell, "Network is not available. Please ensure connectivity.");
+  }
+
+  return 0;
 }
