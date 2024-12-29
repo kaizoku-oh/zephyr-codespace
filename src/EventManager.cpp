@@ -36,7 +36,7 @@ int waitForEvent(const zbus_observer *subscriber, event_t *event, k_timeout_t ti
     if (&eventsChannel == channel) {
 
       // Read the event
-      ret = zbus_chan_read(&eventsChannel, event, K_NO_WAIT);
+      ret = zbus_chan_read(&eventsChannel, event, K_FOREVER);
 
       if (ret == 0) {
         LOG_DBG("Subscriber <%s> received event <%d> on <%s>\r\n",

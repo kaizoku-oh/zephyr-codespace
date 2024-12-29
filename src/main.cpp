@@ -30,7 +30,10 @@ int main(void) {
   event_t eventToPublish = {.id = EVENT_BUTTON_PRESSED};
 
   Network::getInstance().onGotIP([](const char *ipAddress) {
+    event_t eventToPublish = {.id = EVENT_NETWORK_AVAILABLE};
+
     LOG_INF("Got IP address: %s", ipAddress);
+    publishEvent(&eventToPublish, K_NO_WAIT);
   });
 
   LOG_INF("Waiting for network connection...");
@@ -39,7 +42,7 @@ int main(void) {
   while (true) {
     if (button.isPressed()) {
       LOG_INF("Button is pressed");
-      zbus_chan_pub(&eventsChannel, &eventToPublish, K_NO_WAIT);
+      publishEvent(&eventToPublish, K_NO_WAIT);
     }
     k_msleep(300);
   }
