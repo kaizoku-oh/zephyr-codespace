@@ -24,11 +24,11 @@ Setting up the Zephyr toolchain can be a real pain 🛠️. But with **Zephyr Co
 
 1. **Clone or Use Template**
    - Click on **"Use this template"** on GitHub.
-   - Clone your new repository locally:  
-     ```bash
-     git clone https://github.com/<your-username>/<your-repo-name>.git
-     cd <your-repo-name>
-     ```
+   - Clone your new repository locally:
+```bash
+     git clone https://github.com/kaizoku-oh/zephyr-codespace.git
+     cd zephyr-codespace
+```
 
 2. **Open in VS Code**
    - Open the project folder in VS Code.

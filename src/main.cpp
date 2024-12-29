@@ -29,33 +29,8 @@ int main(void) {
   Button button(&buttonGpio);
   event_t eventToPublish = {.id = EVENT_BUTTON_PRESSED};
 
-  Network::getInstance().onNetworkEvent([](NetworkEvent event, void *arg) {
-    event_t eventToPublish = {.id = EVENT_NETWORK_AVAILABLE};
-
-    switch (event) {
-      case NetworkEvent::UP: {
-        LOG_INF("Network interface is up!");
-        break;
-      }
-      case NetworkEvent::DOWN: {
-        LOG_INF("Network interface is down!");
-        break;
-      }
-      case NetworkEvent::GOT_IP: {
-        LOG_INF("Got IP address: %s", (char *)arg);
-        zbus_chan_pub(&eventsChannel, &eventToPublish, K_NO_WAIT);
-        break;
-      }
-      case NetworkEvent::LOST_IP: {
-        LOG_INF("Lost IP address");
-        zbus_chan_pub(&eventsChannel, &eventToPublish, K_NO_WAIT);
-        break;
-      }
-      default: {
-        LOG_ERR("Unknown network event (%d)", (int)event);
-        break;
-      }
-    }
+  Network::getInstance().onGotIP([](const char *ipAddress) {
+    LOG_INF("Got IP address: %s\r\n", ipAddress);
   });
 
   LOG_INF("Waiting for network connection...");
