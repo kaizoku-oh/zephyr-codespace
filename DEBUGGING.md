@@ -1,4 +1,15 @@
-## Usage
+# Debugging
+
+This document outlines the steps to debug a Zephyr application. It covers the process of building and flashing the application, and debugging it through the terminal and vscode.
+
+> [!IMPORTANT]
+> First thing, make sure to plug your board before opening the devontainer/container
+If you didn't do that then you might need to restart the docker service
+```bash
+sudo systemctl restart docker
+```
+
+## From terminal
 
 ```bash
 # Make sure the build is clean
@@ -26,8 +37,11 @@ user@480c36b20b00:/workdir$ west debug --build-dir app/build/
 /opt/toolchains/zephyr-sdk-0.17.0/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb
     -ex 'target extended-remote :3333' app/build/zephyr/zephyr.elf
     -ex load
+```
 
-# cortex-debug openocd command
+## From vscode cortex-debug extension
+
+```bash
 /opt/toolchains/zephyr-sdk-0.17.0/sysroots/x86_64-pokysdk-linux/usr/bin/openocd
     -c "gdb_port 50000"
     -c "tcl_port 50001"
@@ -37,41 +51,6 @@ user@480c36b20b00:/workdir$ west debug --build-dir app/build/
     -f /workdir/zephyr/boards/arm/nucleo_f767zi/support/openocd.cfg
 ```
 
-### If flashing doesn't work restart the docker service and try again
-
-```bash
-sudo systemctl restart docker
-```
-
 ## Windows 11
 
 Install docker on WSL2 following this link https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers
-
-## Limitation
-`ZEPHYR_BASE` environment variable is hardcoded in the docker image to `/workdir/zephyr`
-
-## ✅ ToDo
-
-- [x] Build an STM32 app
-
-- [x] Flash app using openocd
-
-- [x] Debug app using vscode cortex-debug
-
-- [x] Restructure workspace to be compatible with the hard coded `ZEPHYR_BASE` path
-
-- [x] Get firmware version from PN532 module
-
-- [x] Get UID from PN532 module
-
-- [ ] Use interrupt to detect card
-
-- [ ] Simplify Updater code
-
-- [ ] Add green progress bar animation when downloading image (plus a green check mark at the end)
-
-- [ ] Add hash verification to Updater
-
-- [ ] Instead of directly downloading any image, the Updater will send a request to an HTTP API that will respond with the latest version, hash and download URL
-
-- [ ] Check the possibility of communicating directly with the GitHub REST API to download release assets

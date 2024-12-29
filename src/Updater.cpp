@@ -27,6 +27,7 @@ static void startOtaUpdateAction();
 static void downloadImage(const char *host, const char *endpoint);
 static bool confirmCurrentImage();
 static int shellUpdateCommandHandler(const struct shell *shell, size_t argc, char **argv);
+static void drawProgressBar(uint32_t total, uint32_t progress);
 
 // ZBUS subscribers definition
 ZBUS_SUBSCRIBER_DEFINE(updaterSubscriber, 4);
@@ -107,66 +108,52 @@ static void downloadImage(const char *host, const char *endpoint) {
   // Download image
   client.get(endpoint, [](HttpResponse *response) {
     int ret = 0;
-    int percentage = 0;
-    int lastPercentage = -1;
-    int completed = 0;
-    const char *statusEmoji = NULL;
     size_t totalSizeWrittenToFlash = 0;
 
-    // Get the total firmware size
     if (totalDownloadSize == 0) {
       totalDownloadSize = response->totalSize;
-      LOG_INF("File size to download: %d bytes", totalDownloadSize);
+      LOG_INF("Image size to download: %.3f kb", (float)totalDownloadSize / 1024);
     }
 
-    // Write the downloaded chunk to flash
     ret = flash_img_buffered_write(&flashContext,
                                    response->body,
                                    response->bodyLength,
                                    (response->isComplete));
     if (ret < 0) {
       LOG_ERR("Flash write error: %d", ret);
+      totalDownloadSize = 0;
+      currentDownloadedSize = 0;
       return;
     }
 
-    // Increase currently downloaded size each time we download a chunk
     currentDownloadedSize += response->bodyLength;
+    drawProgressBar(totalDownloadSize, currentDownloadedSize);
 
-    // Calculate percentage
-    percentage = (currentDownloadedSize * 100) / totalDownloadSize;
-
-    // Only update the progress bar if the percentage has changed
-    if (percentage != lastPercentage) {
-      lastPercentage = percentage;
-
-      // Determine the appropriate emoji based on progress and completion
-      statusEmoji = (response->isComplete && currentDownloadedSize == totalDownloadSize) ? "✅" : "❌";
-
-      // Print percentage before the progress bar
-      printk("\r%3d%% [", percentage);
-
-      // Draw the completed part of the progress bar
-      completed = (percentage * 50) / 100;
-      for (int i = 0; i < completed; i++) { printk("█"); }
-
-      // Fill the remaining space in the progress bar
-      for (int i = completed; i < 50; i++) { printk(" "); }
-
-      // Close the progress bar
-      printk("]");
-    }
-
-    // Verify that we received all the chunks
     if (response->isComplete) {
-      printk(" %s\r\n", statusEmoji);
       totalSizeWrittenToFlash = flash_img_bytes_written(&flashContext);
-      LOG_INF("\r\nFile size downloaded: %d bytes", currentDownloadedSize);
-      LOG_INF("File size written to flash: %d bytes", totalSizeWrittenToFlash);
       if ((currentDownloadedSize == totalDownloadSize) &&
           (totalDownloadSize == totalSizeWrittenToFlash)) {
+          printk("✅\r\n");
         LOG_INF("Download completed successfully");
+        totalDownloadSize = 0;
+        currentDownloadedSize = 0;
+#ifdef VERIFY_DOWNLOADED_IMAGE_HASH
+        // Verify the hash of the stored firmware
+        flashImageCheck.match = fileHash;
+        flashImageCheck.clen = totalDownloadSize;
+        if (flash_img_check(&flashContext, &flashImageCheck, FIXED_PARTITION_ID(slot1_partition))) {
+          LOG_ERR("Firmware - flash validation has failed");
+          return;
+        }
+#endif // VERIFY_DOWNLOADED_IMAGE_HASH
       } else {
+        printk("❌\r\n");
         LOG_ERR("The size written to flash is different than the one downloaded");
+        LOG_INF("totalDownloadSize=%d", totalDownloadSize);
+        LOG_INF("currentDownloadedSize=%d", currentDownloadedSize);
+        LOG_INF("totalSizeWrittenToFlash=%d", totalSizeWrittenToFlash);
+        totalDownloadSize = 0;
+        currentDownloadedSize = 0;
       }
     }
   });
@@ -223,4 +210,28 @@ static int shellUpdateCommandHandler(const struct shell *shell, size_t argc, cha
   }
 
   return 0;
+}
+
+static void drawProgressBar(uint32_t total, uint32_t progress) {
+  uint32_t percent  = 0;
+  uint32_t filledBlocks  = 0;
+  uint32_t index  = 0;
+
+  // Calculate the percentage
+  percent = (progress * 100) / total;
+
+  // Calculate the number of blocks to fill
+  // 5% per block, so there will be 20 blocks in total
+  filledBlocks = (percent / 5);
+
+  // Print the percentage and the progress bar
+  printk("\r%%%-3d [", percent);
+
+  // Print the filled blocks
+  for (index = 0; index < filledBlocks; index++) { printk("█"); }
+
+  // Print the empty blocks
+  for (index = filledBlocks; index < 20; index++) { printk(" "); }
+
+  printk("]");
 }
