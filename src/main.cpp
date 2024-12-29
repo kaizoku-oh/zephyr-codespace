@@ -30,7 +30,7 @@ int main(void) {
   event_t eventToPublish = {.id = EVENT_BUTTON_PRESSED};
 
   Network::getInstance().onGotIP([](const char *ipAddress) {
-    LOG_INF("Got IP address: %s\r\n", ipAddress);
+    LOG_INF("Got IP address: %s", ipAddress);
   });
 
   LOG_INF("Waiting for network connection...");
