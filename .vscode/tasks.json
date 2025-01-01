@@ -32,6 +32,7 @@
                 "auto",
                 "-b",
                 "${input:board}",
+                "-DDTC_OVERLAY_FILE=${workspaceFolder}/app/boards/${input:board}.overlay app.overlay",
                 "--pristine"
             ],
             "problemMatcher": [
