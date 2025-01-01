@@ -82,7 +82,9 @@ static void onNetworkAvailableAction() {
 
 static void startOtaUpdateAction() {
   if (networkIsAvailable) {
+    shell_prompt_change(shellInstance, " ");
     downloadImage(download_url);
+    shell_prompt_change(shellInstance, "uart:~$ ");
     if (boot_request_upgrade(BOOT_UPGRADE_TEST)) {
       LOG_ERR("Failed to mark the image in slot 1 as pending");
       return;
@@ -131,9 +133,6 @@ static void downloadImage(const char *url) {
   LOG_DBG("host=%s", host);
   LOG_DBG("endpoint=%s", endpoint);
 
-  // Hide shell prompt
-  shell_prompt_change(shellInstance, " ");
-
   // Download image
   client.get(endpoint, [](HttpResponse *response) {
     int ret = 0;
@@ -163,8 +162,6 @@ static void downloadImage(const char *url) {
         LOG_INF("Download completed successfully");
         totalDownloadSize = 0;
         currentDownloadedSize = 0;
-        // Show shell prompt
-        shell_prompt_change(shellInstance, "uart:~$ ");
 #ifdef VERIFY_DOWNLOADED_IMAGE_HASH
         // Verify the hash of the stored firmware
         flashImageCheck.match = fileHash;
