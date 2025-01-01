@@ -119,6 +119,28 @@ static void downloadImage(const char *url) {
   host[hostLength] = '\0';
 
   const char *endpoint = endpointStart;
+  assert(url);
+
+  // Extract hostname and endpoint from URL
+  const char *hostStart = strstr(url, "//");
+  if (!hostStart) {
+    LOG_ERR("Invalid URL format");
+    return;
+  }
+  hostStart += 2; // Skip "//"
+
+  const char *endpointStart = strchr(hostStart, '/');
+  if (!endpointStart) {
+    LOG_ERR("Invalid URL format");
+    return;
+  }
+
+  size_t hostLength = endpointStart - hostStart;
+  char host[hostLength + 1];
+  strncpy(host, hostStart, hostLength);
+  host[hostLength] = '\0';
+
+  const char *endpoint = endpointStart;
 
   HttpClient client((char *)host);
 
@@ -134,10 +156,12 @@ static void downloadImage(const char *url) {
 
   // Hide shell prompt
   shell_prompt_change(shellInstance, " ");
+
   // Download image
   client.get(endpoint, [](HttpResponse *response) {
     int ret = 0;
     size_t totalSizeWrittenToFlash = 0;
+
     if (totalDownloadSize == 0) {
       totalDownloadSize = response->totalSize;
       LOG_INF("Image size to download: %.3f kb", (float)totalDownloadSize / 1024);
