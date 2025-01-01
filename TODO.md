@@ -2,6 +2,8 @@
 
 - [ ] Cleanup the Updater module
 
+- [ ] Use sysbuild
+
 - [x] Add a url argument to the update shell command
 
 - [ ] Cleanup the Updater module

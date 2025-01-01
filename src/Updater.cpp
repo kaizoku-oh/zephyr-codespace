@@ -77,7 +77,6 @@ static void updaterThreadHandler() {
 }
 
 static void onNetworkAvailableAction() {
-  LOG_INF("Network is now available");
   networkIsAvailable = true;
 }
 
