@@ -119,28 +119,6 @@ static void downloadImage(const char *url) {
   host[hostLength] = '\0';
 
   const char *endpoint = endpointStart;
-  assert(url);
-
-  // Extract hostname and endpoint from URL
-  const char *hostStart = strstr(url, "//");
-  if (!hostStart) {
-    LOG_ERR("Invalid URL format");
-    return;
-  }
-  hostStart += 2; // Skip "//"
-
-  const char *endpointStart = strchr(hostStart, '/');
-  if (!endpointStart) {
-    LOG_ERR("Invalid URL format");
-    return;
-  }
-
-  size_t hostLength = endpointStart - hostStart;
-  char host[hostLength + 1];
-  strncpy(host, hostStart, hostLength);
-  host[hostLength] = '\0';
-
-  const char *endpoint = endpointStart;
 
   HttpClient client((char *)host);
 
