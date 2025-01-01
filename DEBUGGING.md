@@ -4,7 +4,7 @@ This document outlines the steps to debug a Zephyr application. It covers the pr
 
 > [!IMPORTANT]
 > First thing, make sure to plug your board before opening the devontainer/container
-If you didn't do that then you might need to restart the docker service
+If you didn't do that then you might need to restart the devcontainer/vscode
 ```bash
 sudo systemctl restart docker
 ```

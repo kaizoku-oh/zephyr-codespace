@@ -31,12 +31,8 @@ int main(void) {
 
   Network::getInstance().onGotIP([](const char *ipAddress) {
     event_t eventToPublish = {.id = EVENT_NETWORK_AVAILABLE};
-
-    LOG_INF("Got IP address: %s", ipAddress);
     publishEvent(&eventToPublish, K_NO_WAIT);
   });
-
-  LOG_INF("Waiting for network connection...");
   Network::getInstance().start();
 
   while (true) {

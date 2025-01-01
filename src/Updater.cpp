@@ -20,16 +20,18 @@ LOG_MODULE_REGISTER(Updater);
 #include "EventManager.h"
 #include "HttpClient.h"
 
+#define DEFAULT_DOWNLOAD_URL "http://192.168.1.28/zephyr.signed.bin"
+
 // Function declarations
 static void updaterThreadHandler();
 static void onNetworkAvailableAction();
 static void startOtaUpdateAction();
-static void downloadImage(const char *host, const char *endpoint);
+static void downloadImage(const char *url);
 static bool confirmCurrentImage();
 static int shellUpdateCommandHandler(const struct shell *shell, size_t argc, char **argv);
 static void drawProgressBar(uint32_t total, uint32_t progress);
 
-// ZBUS subscribers definition
+// ZBUS subscriber definition
 ZBUS_SUBSCRIBER_DEFINE(updaterSubscriber, 4);
 
 // Add a subscriber observer to ZBUS events channel
@@ -39,7 +41,7 @@ ZBUS_CHAN_ADD_OBS(eventsChannel, updaterSubscriber, 4);
 K_THREAD_DEFINE(updaterThread, 1024*8, updaterThreadHandler, NULL, NULL, NULL, 7, 0, 0);
 
 // Shell command registration
-SHELL_CMD_ARG_REGISTER(update, NULL, "Start OTA update process", shellUpdateCommandHandler, 1, 0);
+SHELL_CMD_ARG_REGISTER(update, NULL, "Start OTA update process (optionally with a URL)", shellUpdateCommandHandler, 1, 1);
 
 // Event-Action pairs
 static const event_action_pair_t eventActionList[] {
@@ -52,9 +54,11 @@ static volatile bool networkIsAvailable = false;
 static struct flash_img_context flashContext = {0};
 static size_t totalDownloadSize = 0;
 static size_t currentDownloadedSize = 0;
+static char download_url[128] = {'\0'};
 #ifdef VERIFY_DOWNLOADED_IMAGE_HASH
 static struct flash_img_check flashImageCheck = {0};
 #endif // VERIFY_DOWNLOADED_IMAGE_HASH
+static const struct shell *shellInstance = NULL;
 
 static void updaterThreadHandler() {
   int ret = 0;
@@ -79,7 +83,7 @@ static void onNetworkAvailableAction() {
 
 static void startOtaUpdateAction() {
   if (networkIsAvailable) {
-    downloadImage("192.168.1.25", "/zephyr.signed.bin");
+    downloadImage(download_url);
     if (boot_request_upgrade(BOOT_UPGRADE_TEST)) {
       LOG_ERR("Failed to mark the image in slot 1 as pending");
       return;
@@ -90,11 +94,31 @@ static void startOtaUpdateAction() {
   }
 }
 
-static void downloadImage(const char *host, const char *endpoint) {
+static void downloadImage(const char *url) {
   int ret = 0;
 
-  assert(host);
-  assert(endpoint);
+  assert(url);
+
+  // Extract hostname and endpoint from URL
+  const char *hostStart = strstr(url, "//");
+  if (!hostStart) {
+    LOG_ERR("Invalid URL format");
+    return;
+  }
+  hostStart += 2; // Skip "//"
+
+  const char *endpointStart = strchr(hostStart, '/');
+  if (!endpointStart) {
+    LOG_ERR("Invalid URL format");
+    return;
+  }
+
+  size_t hostLength = endpointStart - hostStart;
+  char host[hostLength + 1];
+  strncpy(host, hostStart, hostLength);
+  host[hostLength] = '\0';
+
+  const char *endpoint = endpointStart;
 
   HttpClient client((char *)host);
 
@@ -105,16 +129,19 @@ static void downloadImage(const char *host, const char *endpoint) {
     return;
   }
 
+  LOG_DBG("host=%s", host);
+  LOG_DBG("endpoint=%s", endpoint);
+
+  // Hide shell prompt
+  shell_prompt_change(shellInstance, " ");
   // Download image
   client.get(endpoint, [](HttpResponse *response) {
     int ret = 0;
     size_t totalSizeWrittenToFlash = 0;
-
     if (totalDownloadSize == 0) {
       totalDownloadSize = response->totalSize;
       LOG_INF("Image size to download: %.3f kb", (float)totalDownloadSize / 1024);
     }
-
     ret = flash_img_buffered_write(&flashContext,
                                    response->body,
                                    response->bodyLength,
@@ -125,18 +152,18 @@ static void downloadImage(const char *host, const char *endpoint) {
       currentDownloadedSize = 0;
       return;
     }
-
     currentDownloadedSize += response->bodyLength;
     drawProgressBar(totalDownloadSize, currentDownloadedSize);
-
     if (response->isComplete) {
       totalSizeWrittenToFlash = flash_img_bytes_written(&flashContext);
       if ((currentDownloadedSize == totalDownloadSize) &&
           (totalDownloadSize == totalSizeWrittenToFlash)) {
-          printk("✅\r\n");
+        printk("✅\r\n");
         LOG_INF("Download completed successfully");
         totalDownloadSize = 0;
         currentDownloadedSize = 0;
+        // Show shell prompt
+        shell_prompt_change(shellInstance, "uart:~$ ");
 #ifdef VERIFY_DOWNLOADED_IMAGE_HASH
         // Verify the hash of the stored firmware
         flashImageCheck.match = fileHash;
@@ -164,6 +191,7 @@ static bool confirmCurrentImage() {
   bool imageIsConfirmed = false;
   struct mcuboot_img_header header = {0};
 
+  // Read the MCUboot image header information to print the bootloader and app version
   if (boot_read_bank_header(FIXED_PARTITION_ID(slot0_partition), &header, sizeof(header)) != 0) {
     LOG_ERR("Failed to read slot0_partition header");
     return false;
@@ -185,8 +213,9 @@ static bool confirmCurrentImage() {
       LOG_ERR("Couldn't confirm this image: %d", ret);
       return false;
     }
-
     LOG_INF("Marked image as confirmed");
+
+    // Erase the content of slot1_partition to be used next time for downloading a new image
     ret = boot_erase_img_bank(FIXED_PARTITION_ID(slot1_partition));
     if (ret) {
       LOG_ERR("Failed to erase second slot: %d", ret);
@@ -199,23 +228,26 @@ static bool confirmCurrentImage() {
 static int shellUpdateCommandHandler(const struct shell *shell, size_t argc, char **argv) {
   event_t eventToPublish = {.id = EVENT_OTA_UPDATE_SHELL_CMD};
 
-  ARG_UNUSED(argc);
-  ARG_UNUSED(argv);
-
-  shell_print(shell, "Starting OTA update...");
-  if (networkIsAvailable) {
-    publishEvent(&eventToPublish, K_NO_WAIT);
-  } else {
+  // Check if network is available
+  if (!networkIsAvailable) {
     shell_error(shell, "Network is not available. Please ensure connectivity.");
+    return -ENETDOWN;
   }
+
+  // If a URL is provided, use it; otherwise, use a default URL
+  strncpy(download_url, (argc == 2) ? argv[1] : DEFAULT_DOWNLOAD_URL, sizeof(download_url));
+  shellInstance = shell;
+
+  // Publish the event to signal the OTA process
+  publishEvent(&eventToPublish, K_NO_WAIT);
 
   return 0;
 }
 
 static void drawProgressBar(uint32_t total, uint32_t progress) {
-  uint32_t percent  = 0;
-  uint32_t filledBlocks  = 0;
-  uint32_t index  = 0;
+  uint32_t index = 0;
+  uint32_t percent = 0;
+  uint32_t filledBlocks = 0;
 
   // Calculate the percentage
   percent = (progress * 100) / total;
@@ -224,13 +256,13 @@ static void drawProgressBar(uint32_t total, uint32_t progress) {
   // 5% per block, so there will be 20 blocks in total
   filledBlocks = (percent / 5);
 
-  // Print the percentage and the progress bar
+  // Print the percentage at the start of the progress bar
   printk("\r%%%-3d [", percent);
 
-  // Print the filled blocks
+  // Print the progress filled blocks
   for (index = 0; index < filledBlocks; index++) { printk("█"); }
 
-  // Print the empty blocks
+  // Print the progress empty blocks
   for (index = filledBlocks; index < 20; index++) { printk(" "); }
 
   printk("]");

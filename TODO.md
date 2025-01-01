@@ -2,7 +2,7 @@
 
 - [ ] Cleanup the Updater module
 
-- [ ] Add a url argument to the update shell command
+- [x] Add a url argument to the update shell command
 
 - [ ] Fine tune the thread stack sizes
 
@@ -12,3 +12,4 @@
 
 - [ ] Overclock the UART to the maximum supported baudrate for both the app and mcuboot
 
+- [ ] Add network management events for each layer

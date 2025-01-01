@@ -13,6 +13,7 @@ target_sources(app PRIVATE
   src/HttpClient.cpp
   src/Temperature.cpp
   src/Button.cpp
+  src/AppEventDrivenFsm.cpp
 )
 
 if(CONFIG_BOOTLOADER_MCUBOOT)

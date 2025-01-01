@@ -43,7 +43,7 @@ int HttpClient::get(const char *endpoint, std::function<void(HttpResponse *)> ca
   memset((void *)&this->socketAddress, 0x00, sizeof(this->socketAddress));
   net_sin(&this->socketAddress)->sin_family = AF_INET;
   net_sin(&this->socketAddress)->sin_port = htons(port);
-  inet_pton(AF_INET, server, &net_sin(&this->socketAddress)->sin_addr);
+  inet_pton(AF_INET, this->server, &net_sin(&this->socketAddress)->sin_addr);
   this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
   if (this->sock < 0) {
@@ -55,7 +55,7 @@ int HttpClient::get(const char *endpoint, std::function<void(HttpResponse *)> ca
   // 1. Open TCP connection
   ret = connect(this->sock, &this->socketAddress, sizeof(this->socketAddress));
   if (ret < 0) {
-    LOG_ERR("Cannot connect to remote (%d)", -errno);
+    LOG_ERR("Cannot connect to remote: %s (%d)", this->server, -errno);
     ret = -errno;
     return ret;
   }
@@ -70,7 +70,7 @@ int HttpClient::get(const char *endpoint, std::function<void(HttpResponse *)> ca
   request.recv_buf_len = sizeof(this->responseBuffer);
   ret = http_client_req(this->sock, &request, 5000, (void *)&this->callback);
   if (ret < 0) {
-    LOG_ERR("Error sending GET request\r\n");
+    LOG_ERR("Error sending GET request");
     ret = -errno;
     return ret;
   }
@@ -97,7 +97,7 @@ int HttpClient::post(const char *endpoint,
   memset((void *)&this->socketAddress, 0x00, sizeof(this->socketAddress));
   net_sin(&this->socketAddress)->sin_family = AF_INET;
   net_sin(&this->socketAddress)->sin_port = htons(port);
-  inet_pton(AF_INET, server, &net_sin(&this->socketAddress)->sin_addr);
+  inet_pton(AF_INET, this->server, &net_sin(&this->socketAddress)->sin_addr);
   this->sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
   if (this->sock < 0) {
