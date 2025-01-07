@@ -100,7 +100,7 @@
                 "${workspaceFolder}/app",
                 "-d",
                 "${workspaceFolder}/app/build",
-                "-DEXTRA_CONF_FILE=overlay_ota.conf",
+                "-DEXTRA_CONF_FILE=overlay-ota.conf",
                 "-p",
                 "auto",
                 "-b",
