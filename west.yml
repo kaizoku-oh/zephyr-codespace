@@ -6,12 +6,12 @@ manifest:
 
   remotes:
     - name: zephyrproject
-      url-base: https://github.com/zephyrproject-rtos
+      url-base: https://github.com/kaizoku-oh/zephyr
 
   projects:
     - name: zephyr
       repo-path: zephyr
-      revision: a6eef0ba3755f2530c5ce93524e5ac4f5be30194 # v3.5.0
+      revision: main
       path: zephyr
       import:
         path-prefix: deps
