@@ -7,13 +7,11 @@
 
 // Zephyr includes
 #include <zephyr/kernel.h>
-#include <zephyr/zbus/zbus.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main);
 
 // User C++ class headers
-#include "EventManager.h"
-#include "Network.h"
+#include "Led.h"
 #include "Button.h"
 
 /*-----------------------------------------------------------------------------------------------*/
@@ -25,20 +23,24 @@ LOG_MODULE_REGISTER(main);
   * @retval None
   */
 int main(void) {
-  const struct gpio_dt_spec buttonGpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(sw0), gpios, {0});
-  Button button(&buttonGpio);
-  event_t eventToPublish = {.id = EVENT_BUTTON_PRESSED};
+  const struct gpio_dt_spec greenLedGpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(led0), gpios, {0});
+  const struct gpio_dt_spec blueLedGpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(led1), gpios, {0});
+  const struct gpio_dt_spec redLedGpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(led2), gpios, {0});
 
-  Network::getInstance().onGotIP([](const char *ipAddress) {
-    event_t eventToPublish = {.id = EVENT_NETWORK_AVAILABLE};
-    publishEvent(&eventToPublish, K_NO_WAIT);
-  });
-  Network::getInstance().start();
+  const struct gpio_dt_spec buttonGpio = GPIO_DT_SPEC_GET_OR(DT_ALIAS(sw0), gpios, {0});
+
+  Led greenLed(&greenLedGpio);
+  Led blueLed(&blueLedGpio);
+  Led redLed(&redLedGpio);
+
+  Button button(&buttonGpio);
 
   while (true) {
     if (button.isPressed()) {
+      greenLed.toggle();
+      blueLed.toggle();
+      redLed.toggle();
       LOG_INF("Button is pressed");
-      publishEvent(&eventToPublish, K_NO_WAIT);
     }
     k_msleep(300);
   }
