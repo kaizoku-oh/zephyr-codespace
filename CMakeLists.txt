@@ -7,9 +7,7 @@ project(app)
 target_include_directories(app PRIVATE include)
 
 target_sources(app PRIVATE
-  src/main.cpp
-  src/Button.cpp
-  src/Led.cpp
+  src/main.c
 )
 
 if(CONFIG_BOOTLOADER_MCUBOOT)
