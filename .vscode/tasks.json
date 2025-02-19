@@ -163,7 +163,8 @@
             "description": "See https://docs.zephyrproject.org/latest/boards/st",
             "options": [
                 "nucleo_f767zi",
-                "nucleo_u575zi_q"
+                "nucleo_u575zi_q",
+                "esp32_devkitc_wroom"
             ]
         }
     ]
