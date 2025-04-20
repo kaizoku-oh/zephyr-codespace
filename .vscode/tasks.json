@@ -4,54 +4,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Clean (bootloader)",
-            "type": "shell",
-            "command": "rm",
-            "args": [
-                "-rf",
-                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr/build",
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
-            "label": "Build (bootloader)",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "command": "west",
-            "args": [
-                "build",
-                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr",
-                "-d",
-                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr/build",
-                "-p",
-                "auto",
-                "-b",
-                "${input:board}",
-                "--pristine"
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ],
-        },
-        {
-            "label": "Flash (bootloader)",
-            "type": "shell",
-            "command": "west",
-            "args": [
-                "flash",
-                "-d",
-                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr/build",
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
             "label": "Clean (application)",
             "type": "shell",
             "command": "rm",
@@ -87,30 +39,6 @@
             ],
         },
         {
-            "label": "Build (application with OTA)",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "command": "west",
-            "args": [
-                "build",
-                "${workspaceFolder}/app",
-                "-d",
-                "${workspaceFolder}/app/build",
-                "-DEXTRA_CONF_FILE=overlay_ota.conf",
-                "-p",
-                "auto",
-                "-b",
-                "${input:board}",
-                "--pristine"
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ],
-        },
-        {
             "label": "Flash (application)",
             "type": "shell",
             "command": "west",
@@ -132,26 +60,6 @@
             "args": [
                 "update"
             ]
-        },
-        {
-            "label": "MenuConfig",
-            "type": "shell",
-            "command": "west",
-            "args": [
-                "build",
-                "${workspaceFolder}/app",
-                "-d",
-                "${workspaceFolder}/app/build",
-                "-p",
-                "auto",
-                "-b",
-                "${input:board}",
-                "-t",
-                "menuconfig"
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ]
         }
     ],
     "inputs": [
@@ -161,8 +69,7 @@
             "default": "nucleo_f767zi",
             "description": "See https://docs.zephyrproject.org/latest/boards/st",
             "options": [
-                "nucleo_f767zi",
-                "nucleo_u575zi_q"
+                "nucleo_f767zi"
             ]
         }
     ]
