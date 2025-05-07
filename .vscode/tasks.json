@@ -16,43 +16,6 @@
             ]
         },
         {
-            "label": "Build (bootloader)",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "command": "west",
-            "args": [
-                "build",
-                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr",
-                "-d",
-                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr/build",
-                "-p",
-                "auto",
-                "-b",
-                "${input:board}",
-                "-DDTC_OVERLAY_FILE=${workspaceFolder}/app/boards/${input:board}.overlay app.overlay",
-                "--pristine"
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ],
-        },
-        {
-            "label": "Flash (bootloader)",
-            "type": "shell",
-            "command": "west",
-            "args": [
-                "flash",
-                "-d",
-                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr/build",
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
             "label": "Clean (application)",
             "type": "shell",
             "command": "rm",
@@ -77,30 +40,6 @@
                 "${workspaceFolder}/app",
                 "-d",
                 "${workspaceFolder}/app/build",
-                "-p",
-                "auto",
-                "-b",
-                "${input:board}",
-                "--pristine"
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ],
-        },
-        {
-            "label": "Build (application with OTA)",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "command": "west",
-            "args": [
-                "build",
-                "${workspaceFolder}/app",
-                "-d",
-                "${workspaceFolder}/app/build",
-                "-DEXTRA_CONF_FILE=overlay_ota.conf",
                 "-p",
                 "auto",
                 "-b",
@@ -163,7 +102,6 @@
             "description": "See https://docs.zephyrproject.org/latest/boards/st",
             "options": [
                 "nucleo_f767zi",
-                "nucleo_u575zi_q"
             ]
         }
     ]

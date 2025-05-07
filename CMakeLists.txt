@@ -7,13 +7,7 @@ project(app)
 target_include_directories(app PRIVATE include)
 
 target_sources(app PRIVATE
-  src/main.cpp
-  src/EventManager.cpp
-  src/Network.cpp
-  src/HttpClient.cpp
-  src/Temperature.cpp
-  src/Button.cpp
-  src/AppEventDrivenFsm.cpp
+  src/main.c
 )
 
 if(CONFIG_BOOTLOADER_MCUBOOT)
