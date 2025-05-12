@@ -105,7 +105,7 @@ void k_sys_fatal_error_handler(unsigned int reason, const struct arch_esf *conte
   */
 static void pn532_example(void)
 {
-  const struct device *dev = DEVICE_DT_GET_ONE(nxp_pn532_i2c);
+  const struct device *dev = DEVICE_DT_GET_ONE(nxp_pn532);
   uint32_t fw_version = 0;
 
   if (!device_is_ready(dev))
@@ -114,7 +114,7 @@ static void pn532_example(void)
     return;
   }
 
-  if (pn532_get_fw_version(dev, &fw_version) == 0)
+  if (pn532_get_firmware_version(dev, &fw_version) == 0)
   {
     LOG_INF("PN532 Firmware Version: %02X.%02X",
             (fw_version >> 8) & 0xFF,
