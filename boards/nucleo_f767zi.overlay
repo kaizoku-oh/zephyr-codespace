@@ -6,3 +6,12 @@
 	current-speed = <2000000>;
 	status = "okay";
 };
+
+&i2c1 {
+    status = "okay";
+    pn532: pn532@24 {
+        compatible = "nxp,pn532";
+        reg = <0x24>;
+        status = "okay";
+    };
+};

@@ -4,18 +4,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Clean (bootloader)",
-            "type": "shell",
-            "command": "rm",
-            "args": [
-                "-rf",
-                "${workspaceFolder}/deps/bootloader/mcuboot/boot/zephyr/build",
-            ],
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
             "label": "Clean (application)",
             "type": "shell",
             "command": "rm",

@@ -7,6 +7,8 @@ manifest:
   remotes:
     - name: zephyrproject
       url-base: https://github.com/zephyrproject-rtos
+    - name: bytefull
+      url-base: https://github.com/bytefull
 
   projects:
     - name: zephyr
@@ -18,6 +20,11 @@ manifest:
         name-allowlist:
           - cmsis
           - hal_stm32
+    - name: pn532
+      remote: bytefull
+      repo-path: pn532-zephyr-driver
+      revision: main
+      path: deps/modules/pn532
 
   self:
     path: app
