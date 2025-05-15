@@ -86,10 +86,11 @@
         {
             "id": "board",
             "type": "pickString",
-            "default": "nucleo_f767zi",
-            "description": "See https://docs.zephyrproject.org/latest/boards/st",
+            "default": "native_sim",
+            "description": "See https://docs.zephyrproject.org/latest/boards/index.html",
             "options": [
-                "nucleo_f767zi",
+                "native_sim",
+                "nucleo_f767zi"
             ]
         }
     ]
