@@ -13,7 +13,7 @@ manifest:
   projects:
     - name: zephyr
       repo-path: zephyr
-      revision: main
+      revision: v4.1.0
       path: zephyr
       import:
         path-prefix: deps

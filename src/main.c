@@ -30,8 +30,7 @@ int main(void)
 {
   pn532_example();
 
-  while (true)
-  {
+  while (true) {
     k_msleep(500);
   }
 
@@ -49,47 +48,38 @@ void k_sys_fatal_error_handler(unsigned int reason, const struct arch_esf *conte
   struct k_thread *faulting_thread = NULL;
 
   switch (reason) {
-    case K_ERR_CPU_EXCEPTION:
-    {
+    case K_ERR_CPU_EXCEPTION: {
       LOG_ERR("Generic CPU exception, not covered by other codes");
       break;
     }
-    case K_ERR_SPURIOUS_IRQ:
-    {
+    case K_ERR_SPURIOUS_IRQ: {
       LOG_ERR("Unhandled hardware interrupt");
       break;
     }
-    case K_ERR_STACK_CHK_FAIL:
-    {
+    case K_ERR_STACK_CHK_FAIL: {
       LOG_ERR("Faulting context overflowed its stack buffer");
       /* Get the current thread that caused the fault */
       faulting_thread = k_current_get();
-      if (faulting_thread)
-      {
+      if (faulting_thread) {
         LOG_ERR("Fault occurred in thread: %s", k_thread_name_get(faulting_thread));
         LOG_ERR("Thread ID: %p", (void *)faulting_thread);
         LOG_ERR("Stack start: %p, size: %zu",
                 (void *)faulting_thread->stack_info.start,
                 faulting_thread->stack_info.size);
-      }
-      else
-      {
+      } else {
         LOG_ERR("Could not determine faulting thread");
       }
       break;
     }
-    case K_ERR_KERNEL_OOPS:
-    {
+    case K_ERR_KERNEL_OOPS: {
       LOG_ERR("High severity software error");
       break;
     }
-    case K_ERR_ARCH_START:
-    {
+    case K_ERR_ARCH_START: {
       LOG_ERR("Arch specific fatal errors");
       break;
     }
-    default:
-    {
+    default: {
       LOG_ERR("Unknow reason for fatal error (%d)", reason);
       break;
     }
@@ -108,20 +98,16 @@ static void pn532_example(void)
   const struct device *dev = DEVICE_DT_GET_ONE(nxp_pn532);
   uint32_t fw_version = 0;
 
-  if (!device_is_ready(dev))
-  {
+  if (!device_is_ready(dev)) {
     LOG_INF("PN532 device not ready");
     return;
   }
 
-  if (pn532_get_firmware_version(dev, &fw_version) == 0)
-  {
+  if (pn532_get_firmware_version(dev, &fw_version) == 0) {
     LOG_INF("PN532 Firmware Version: %02X.%02X",
             (fw_version >> 8) & 0xFF,
             fw_version & 0xFF);
-  }
-  else
-  {
+  } else {
     LOG_ERR("Failed to get PN532 firmware version");
   }
 }
