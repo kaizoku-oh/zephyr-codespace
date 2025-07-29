@@ -29,7 +29,7 @@ LOG_MODULE_REGISTER(hash_example);
   * @param  None
   * @retval None
   */
-int main(void) {
+int main(void)
 {
   const struct device *const dev = DEVICE_DT_GET(DT_NODELABEL(hash));
   struct hash_ctx ctx = {0};
