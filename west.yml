@@ -16,7 +16,7 @@ manifest:
       import:
         path-prefix: deps
         name-allowlist:
-          - cmsis
+          - cmsis_6
           - hal_stm32
           - mcuboot
           - mbedtls
