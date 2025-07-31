@@ -61,7 +61,11 @@ static void do_hashing(enum hash_algo algo,
 
   LOG_HEXDUMP_INF(digest, digest_len, label);
 
-  hash_free_session(dev, &ctx);
+  ret = hash_free_session(dev, &ctx);
+  if (ret != 0) {
+    LOG_ERR("%s: free_session failed (%d)", label, ret);
+    return;
+  }
 }
 
 static void thread_sha256(void)
